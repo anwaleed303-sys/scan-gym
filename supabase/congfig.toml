@@ -1,0 +1,10 @@
+project_id = "zrwrdsitobktctjprtqi"
+
+[functions.create-partner]
+verify_jwt = false
+
+[functions.get-mapbox-token]
+verify_jwt = false
+
+[functions.safepay-webhook]
+verify_jwt = false

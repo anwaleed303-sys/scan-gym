@@ -1,0 +1,26 @@
+{
+  "files": [],
+  "references": [
+    { "path": "./tsconfig.app.json" },
+    { "path": "./tsconfig.node.json" }
+  ],
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+    "allowJs": true,
+    "skipLibCheck": true,
+    "noImplicitAny": false,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "strictNullChecks": false,
+
+    // ⚡ ADD THESE:
+    "jsx": "react-jsx", // React 17+ JSX transform
+    "esModuleInterop": true, // ensures default imports work correctly
+    "moduleResolution": "node", // resolves modules like Node.js
+    "verbatimModuleSyntax": true // strict type-only import enforcement
+  },
+  "exclude": ["supabase/functions/**/*"]
+}
