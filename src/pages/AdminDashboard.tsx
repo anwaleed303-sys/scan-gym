@@ -1,15 +1,31 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "../Components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "../Components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "../Components/ui/card";
 import { useToast } from "../hooks/use-toast";
 import { supabase } from "../Integrations/client";
-import { Shield, LogOut, Users, Building2, FileText, ShoppingBag, Dumbbell, Salad } from "lucide-react";
+import {
+  Shield,
+  LogOut,
+  Users,
+  Building2,
+  FileText,
+  ShoppingBag,
+  Dumbbell,
+  Salad,
+} from "lucide-react";
 import { PartnerManagement } from "../Components/admin/PartnerManagement";
 import { GymManagement } from "../Components/admin/GymManagement";
 import { GymsMapView } from "../Components/admin/GymMapview";
 import { TrainerManagement } from "../Components/admin/TrainerManagement";
 import { DietPlanManagement } from "../Components/admin/DietPlanManagement";
+import { NotificationBell } from "@/Components/admin/NotificationBell";
+import { OrderManagement } from "../Components/admin/OrderManagement";
 
 interface GymPartner {
   id: string;
@@ -76,6 +92,7 @@ const AdminDashboard = () => {
   const [gyms, setGyms] = useState<Gym[]>([]);
   const [trainers, setTrainers] = useState<Trainer[]>([]);
   const [dietPlans, setDietPlans] = useState<DietPlan[]>([]);
+  const [orders, setOrders] = useState<any[]>([]);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -85,8 +102,10 @@ const AdminDashboard = () => {
 
   const checkAdminAccess = async () => {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
       if (!user) {
         navigate("/admin-login");
         return;
@@ -130,7 +149,9 @@ const AdminDashboard = () => {
       // Fetch gyms with all fields
       const { data: gymsData, error: gymsError } = await supabase
         .from("gyms")
-        .select("id, name, city, address, qr_code, latitude, longitude, opening_time, closing_time, services, phone, email, description, is_active, created_at")
+        .select(
+          "id, name, city, address, qr_code, latitude, longitude, opening_time, closing_time, services, phone, email, description, is_active, created_at"
+        )
         .order("name");
 
       if (gymsError) throw gymsError;
@@ -139,29 +160,32 @@ const AdminDashboard = () => {
       // Fetch partners with gym and profile info
       const { data: partnersData, error: partnersError } = await supabase
         .from("gym_partners")
-        .select(`
+        .select(
+          `
           id,
           user_id,
           gym_id,
           created_at,
           gyms (id, name, city, address, opening_time, closing_time, services, phone, email, is_active)
-        `)
+        `
+        )
         .order("created_at", { ascending: false });
 
       if (partnersError) throw partnersError;
 
       // Fetch profiles for partners
-      const userIds = partnersData?.map(p => p.user_id) || [];
+      const userIds = partnersData?.map((p) => p.user_id) || [];
       const { data: profilesData } = await supabase
         .from("profiles")
         .select("id, full_name")
         .in("id", userIds);
 
-      const partnersWithProfiles = partnersData?.map(partner => ({
-        ...partner,
-        gym: partner.gyms,
-        profile: profilesData?.find(p => p.id === partner.user_id) || null,
-      })) || [];
+      const partnersWithProfiles =
+        partnersData?.map((partner) => ({
+          ...partner,
+          gym: partner.gyms,
+          profile: profilesData?.find((p) => p.id === partner.user_id) || null,
+        })) || [];
 
       setPartners(partnersWithProfiles);
 
@@ -182,7 +206,65 @@ const AdminDashboard = () => {
 
       if (dietPlansError) throw dietPlansError;
       setDietPlans(dietPlansData || []);
+
+      if (dietPlansError) throw dietPlansError;
+      setDietPlans(dietPlansData || []);
+      // Fetch orders WITHOUT relationship syntax
+      const { data: ordersData, error: ordersError } = await supabase
+        .from("orders")
+        .select("*")
+        .order("created_at", { ascending: false });
+
+      if (ordersError) throw ordersError;
+
+      console.log("📦 Raw orders from database:", ordersData);
+
+      // Manually fetch user profiles for orders
+      const orderUserIds =
+        ordersData?.map((o) => o.user_id).filter(Boolean) || [];
+      let orderProfiles: any[] = [];
+
+      if (orderUserIds.length > 0) {
+        const { data: orderProfilesData } = await supabase
+          .from("profiles")
+          .select("id, full_name, email")
+          .in("id", orderUserIds);
+        orderProfiles = orderProfilesData || [];
+      }
+
+      // Manually combine orders with profiles
+      // const ordersWithProfiles =
+      //   ordersData?.map((order) => ({
+      //     ...order,
+      //     profiles: orderProfiles.find((p) => p.id === order.user_id) || null,
+      //   })) || [];
+
+      // console.log("✅ Processed orders with profiles:", ordersWithProfiles);
+
+      // setOrders(ordersWithProfiles);
+
+      // Combine orders with profiles
+      const ordersWithProfiles =
+        ordersData?.map((order) => ({
+          ...order,
+          profiles: orderProfiles.find((p) => p.id === order.user_id) || null,
+        })) || [];
+
+      // Debug: Log processed orders
+      console.log("✅ Processed orders with profiles:", ordersWithProfiles);
+      console.log("📈 Breakdown by status:", {
+        pending: ordersWithProfiles.filter((o) => o.status === "pending")
+          .length,
+        active: ordersWithProfiles.filter((o) => o.status === "active").length,
+        completed: ordersWithProfiles.filter((o) => o.status === "completed")
+          .length,
+        cancelled: ordersWithProfiles.filter((o) => o.status === "cancelled")
+          .length,
+      });
+
+      setOrders(ordersWithProfiles);
     } catch (error: any) {
+      console.error("❌ Error loading orders:", error);
       toast({
         title: "Error loading data",
         description: error.message,
@@ -190,7 +272,6 @@ const AdminDashboard = () => {
       });
     }
   };
-
   const handleSignOut = async () => {
     await supabase.auth.signOut();
     navigate("/");
@@ -218,11 +299,16 @@ const AdminDashboard = () => {
               <Shield className="w-5 h-5 text-primary" />
             </div>
             <div>
-              <h1 className="text-xl font-display font-bold">Admin Dashboard</h1>
-              <p className="text-sm text-muted-foreground">Manage gym partners</p>
+              <h1 className="text-xl font-display font-bold">
+                Admin Dashboard
+              </h1>
+              <p className="text-sm text-muted-foreground">
+                Manage gym partners
+              </p>
             </div>
           </div>
           <div className="flex items-center gap-3">
+            <NotificationBell />
             <Link to="/blog-admin">
               <Button variant="outline" size="sm">
                 <FileText className="w-4 h-4 mr-2" />
@@ -315,7 +401,10 @@ const AdminDashboard = () => {
         <div className="mb-8">
           <DietPlanManagement dietPlans={dietPlans} onRefresh={fetchData} />
         </div>
-
+        {/* Order Management */}
+        <div className="mb-8" id="order-management">
+          <OrderManagement orders={orders} onRefresh={fetchData} />
+        </div>
         {/* Partner Management */}
         <PartnerManagement
           partners={partners}

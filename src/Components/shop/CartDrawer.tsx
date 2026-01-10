@@ -22,6 +22,8 @@ import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { supabase } from "../../Integrations/client";
 import { useToast } from "../../hooks/use-toast";
+import { useNavigate } from "react-router-dom";
+import { Json } from "../../Integrations/types";
 
 interface CartItem {
   id: string;
@@ -45,6 +47,7 @@ interface ShippingAddress {
   address: string;
   city: string;
   postalCode: string;
+  [key: string]: Json;
 }
 
 const CartDrawer = ({
@@ -54,6 +57,7 @@ const CartDrawer = ({
   onClearCart,
 }: CartDrawerProps) => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [step, setStep] = useState<"cart" | "shipping">("cart");
   const [shippingAddress, setShippingAddress] = useState<ShippingAddress>({
@@ -64,6 +68,7 @@ const CartDrawer = ({
     city: "",
     postalCode: "",
   });
+  const [isOpen, setIsOpen] = useState(false);
 
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
   const subtotal = items.reduce(
@@ -122,73 +127,92 @@ const CartDrawer = ({
     return true;
   };
 
-  const handleProceedToShipping = () => {
+  const handleProceedToShipping = async () => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      toast({
+        title: "Login Required",
+        description: "Please login to place an order",
+        variant: "destructive",
+      });
+      setIsOpen(false);
+      navigate("/login");
+      return;
+    }
+
     setStep("shipping");
   };
 
-  const handleCheckout = async () => {
+  const handleGenerateOrder = async () => {
     if (items.length === 0) return;
+
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      toast({
+        title: "Login Required",
+        description: "Please login to place an order",
+        variant: "destructive",
+      });
+      setIsOpen(false);
+      navigate("/login");
+      return;
+    }
+
     if (!validateShipping()) return;
 
     setIsLoading(true);
     try {
-      // Get user if logged in, otherwise use guest checkout
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const orderNumber = `SG-${Date.now().toString(36).toUpperCase()}`;
 
-      const successUrl = `${window.location.origin}/payment-success`;
-      const cancelUrl = `${window.location.origin}/shop`;
+      const { error: orderError } = await supabase.from("orders").insert({
+        user_id: user.id,
+        order_number: orderNumber,
+        status: "pending",
+        total_amount: subtotal,
+        items: items.map((item) => ({
+          id: item.id,
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity,
+        })) as Json,
+        shipping_address: shippingAddress as Json,
+      });
 
-      const { data, error } = await supabase.functions.invoke(
-        "safepay-checkout",
-        {
-          body: {
-            amount: subtotal,
-            payment_type: "shop",
-            metadata: {
-              items: items.map((item) => ({
-                id: item.id,
-                name: item.name,
-                price: item.price,
-                quantity: item.quantity,
-              })),
-              shipping_address: shippingAddress,
-            },
-            success_url: successUrl,
-            cancel_url: cancelUrl,
-          },
-        }
-      );
-
-      if (error) {
-        console.error("Checkout error:", error);
+      if (orderError) {
+        console.error("Order creation error:", orderError);
         toast({
-          title: "Checkout Failed",
-          description: "Failed to initiate payment. Please try again.",
+          title: "Order Failed",
+          description: "Failed to create order. Please try again.",
           variant: "destructive",
         });
         return;
       }
 
-      if (data?.checkout_url) {
-        // Store cart items and shipping in localStorage for order creation after payment
-        localStorage.setItem("pending_cart", JSON.stringify(items));
-        localStorage.setItem("pending_order_id", data.order_id);
-        localStorage.setItem(
-          "pending_shipping",
-          JSON.stringify(shippingAddress)
-        );
-        window.location.href = data.checkout_url;
-      } else {
-        toast({
-          title: "Checkout Failed",
-          description: "Failed to get payment URL.",
-          variant: "destructive",
-        });
-      }
+      toast({
+        title: "Order Created!",
+        description: `Order ${orderNumber} has been created successfully. Admin will review it soon.`,
+      });
+
+      onClearCart();
+      setShippingAddress({
+        fullName: "",
+        email: "",
+        phone: "",
+        address: "",
+        city: "",
+        postalCode: "",
+      });
+      setStep("cart");
+      setIsOpen(false);
+      navigate("/orders");
     } catch (err) {
-      console.error("Checkout error:", err);
+      console.error("Order error:", err);
       toast({
         title: "Error",
         description: "An unexpected error occurred.",
@@ -405,16 +429,16 @@ const CartDrawer = ({
         <Button
           className="w-full"
           size="lg"
-          onClick={handleCheckout}
+          onClick={handleGenerateOrder}
           disabled={isLoading}
         >
           {isLoading ? (
             <>
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              Processing...
+              Generating Order...
             </>
           ) : (
-            "Pay with Safepay"
+            "Generate Order"
           )}
         </Button>
       </div>
@@ -422,7 +446,13 @@ const CartDrawer = ({
   );
 
   return (
-    <Sheet onOpenChange={(open) => !open && setStep("cart")}>
+    <Sheet
+      open={isOpen}
+      onOpenChange={(open) => {
+        setIsOpen(open);
+        if (!open) setStep("cart");
+      }}
+    >
       <SheetTrigger asChild>
         <Button variant="outline" size="lg" className="relative">
           <ShoppingCart className="w-5 h-5" />

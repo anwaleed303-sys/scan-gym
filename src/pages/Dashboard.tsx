@@ -16,6 +16,7 @@ import {
   Scan,
   Navigation,
   Search,
+  ShoppingBag,
 } from "lucide-react";
 import { useToast } from "../hooks/use-toast";
 import { useAuth } from "../Contexts/AuthContext";
@@ -433,6 +434,13 @@ const Dashboard = () => {
                   >
                     <History className="w-5 h-5" />
                     Scan History
+                  </button>
+                  <button
+                    onClick={() => navigate("/orders")}
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors text-muted-foreground hover:bg-muted hover:text-foreground"
+                  >
+                    <ShoppingBag className="w-5 h-5" />
+                    My Orders
                   </button>
                   <button
                     onClick={() => setActiveTab("settings")}

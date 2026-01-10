@@ -60,10 +60,10 @@ const Footer = () => {
                   href: "/how-it-works",
                   label: "How It Works",
                 },
-                {
-                  href: "/find-gyms",
-                  label: "Find Gyms",
-                },
+                // {
+                //   href: "/find-gyms",
+                //   label: "Find Gyms",
+                // },
                 {
                   href: "/pricing",
                   label: "Pricing",

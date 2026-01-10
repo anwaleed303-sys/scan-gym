@@ -8,7 +8,7 @@ import ProtectedPartnerRoute from "../src/Components/ProtectedPartnerRoute";
 import ProtectedAdminRoute from "../src/Components/ProtectedAdminRoute";
 import Index from "./pages/Index";
 import HowItWorks from "../src/pages/HowItWorks";
-import FindGyms from "./pages/FindGyms";
+// import FindGyms from "./pages/FindGyms";
 import Pricing from "./pages/Pricing";
 import Partner from "./pages/Partner";
 import PartnerLogin from "./pages/PartnerLogin";
@@ -40,7 +40,7 @@ const App = () => (
           {/* Public Routes */}
           <Route path="/" element={<Index />} />
           <Route path="/how-it-works" element={<HowItWorks />} />
-          <Route path="/find-gyms" element={<FindGyms />} />
+          {/* <Route path="/find-gyms" element={<FindGyms />} /> */}
           <Route path="/pricing" element={<Pricing />} />
           <Route path="/blog" element={<Blog />} />
           <Route path="/blog/:slug" element={<BlogPost />} />
@@ -62,7 +62,7 @@ const App = () => (
             path="/dashboard"
             element={
               <ProtectedRoute>
-                <Dashboard />
+                <Orders />
               </ProtectedRoute>
             }
           />
