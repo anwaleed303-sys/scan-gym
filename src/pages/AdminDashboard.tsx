@@ -401,16 +401,18 @@ const AdminDashboard = () => {
         <div className="mb-8">
           <DietPlanManagement dietPlans={dietPlans} onRefresh={fetchData} />
         </div>
+        {/* Partner Management */}
+        <div className="mb-8" id="order-management">
+          <PartnerManagement
+            partners={partners}
+            gyms={gyms}
+            onRefresh={fetchData}
+          />
+        </div>
         {/* Order Management */}
         <div className="mb-8" id="order-management">
           <OrderManagement orders={orders} onRefresh={fetchData} />
         </div>
-        {/* Partner Management */}
-        <PartnerManagement
-          partners={partners}
-          gyms={gyms}
-          onRefresh={fetchData}
-        />
       </main>
     </div>
   );

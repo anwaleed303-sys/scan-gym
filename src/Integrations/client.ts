@@ -9,11 +9,17 @@ import type { Database } from "../Integrations/types";
 // const SUPABASE_PUBLISHABLE_KEY =
 //   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpyd3Jkc2l0b2JrdGN0anBydHFpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYyMjk5NTQsImV4cCI6MjA4MTgwNTk1NH0.c34DD0EYTHd2lYaLC-rrMWaVvKnuFg3nPKHeyDW0QI0";
 const SUPABASE_URL = "https://jjlplagkxjpagovtclgj.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpqbHBsYWdreGpwYWdvdnRjbGdqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgwNDA2NzIsImV4cCI6MjA4MzYxNjY3Mn0.ZosZuBcUgTLy1K6f_QDE0pdbae7DPYAj6YyQm0uEtCk";
-export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
-  auth: {
-    storage: localStorage,
-    persistSession: true,
-    autoRefreshToken: true,
-  },
-});
+const SUPABASE_PUBLISHABLE_KEY =
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpqbHBsYWdreGpwYWdvdnRjbGdqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgwNDA2NzIsImV4cCI6MjA4MzYxNjY3Mn0.ZosZuBcUgTLy1K6f_QDE0pdbae7DPYAj6YyQm0uEtCk";
+
+export const supabase = createClient<Database>(
+  SUPABASE_URL,
+  SUPABASE_PUBLISHABLE_KEY,
+  {
+    auth: {
+      storage: localStorage,
+      persistSession: true,
+      autoRefreshToken: true,
+    },
+  }
+);
