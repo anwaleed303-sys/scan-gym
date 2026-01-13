@@ -364,3 +364,350 @@ export const TrainerManagement = ({
     </Card>
   );
 };
+<style>{`
+        /* ============================================
+           TRAINER MANAGEMENT RESPONSIVE STYLES
+           ============================================ */
+
+        /* Mobile First - Base Styles (320px+) */
+        @media (max-width: 640px) {
+          /* Card header stacking */
+          .flex.flex-row.items-center.justify-between {
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            gap: 0.75rem;
+          }
+
+          .flex.flex-row.items-center.justify-between > button {
+            width: 100%;
+          }
+
+          /* Form modal adjustments */
+          .fixed.inset-0 .max-w-md {
+            max-width: calc(100% - 1rem) !important;
+            margin: 0 0.5rem;
+          }
+
+          .max-h-\\[90vh\\] {
+            max-height: 85vh !important;
+          }
+
+          /* Form container padding */
+          .fixed.inset-0 .bg-card.border {
+            padding: 1rem !important;
+          }
+
+          /* Form title */
+          .font-display.text-xl {
+            font-size: 1.125rem !important;
+          }
+
+          /* Form inputs spacing */
+          .space-y-4 {
+            gap: 0.75rem !important;
+          }
+
+          /* Form buttons */
+          .flex.gap-2.pt-4 {
+            flex-direction: column !important;
+            gap: 0.5rem !important;
+          }
+
+          .flex.gap-2.pt-4 button {
+            width: 100% !important;
+            flex: none !important;
+          }
+
+          /* Trainer cards */
+          .flex.items-center.justify-between.p-4 {
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            gap: 1rem;
+            padding: 1rem !important;
+          }
+
+          /* Trainer info section */
+          .flex.items-center.gap-3 {
+            width: 100%;
+            flex-wrap: wrap;
+          }
+
+          /* Trainer avatar */
+          .w-12.h-12 {
+            width: 3rem !important;
+            height: 3rem !important;
+            font-size: 1.25rem !important;
+          }
+
+          /* Trainer details */
+          .flex.items-center.gap-3 > div {
+            flex: 1;
+            min-width: 0;
+          }
+
+          /* Trainer name and status */
+          .flex.items-center.gap-2 {
+            flex-wrap: wrap;
+            gap: 0.5rem !important;
+          }
+
+          /* Status badge */
+          .text-xs.px-2.py-0\\.5.rounded-full {
+            font-size: 0.7rem !important;
+            padding: 0.125rem 0.5rem !important;
+            white-space: nowrap;
+          }
+
+          /* Trainer specialty and price */
+          .text-sm.text-muted-foreground,
+          .text-sm.font-medium.text-primary {
+            font-size: 0.875rem !important;
+            word-break: break-word;
+          }
+
+          /* Action buttons container */
+          .flex.items-center.gap-2:has(button[size="icon"]) {
+            width: 100%;
+            justify-content: flex-end;
+            margin-top: 0.5rem;
+          }
+
+          /* Action buttons */
+          button[size="icon"] {
+            min-width: 40px !important;
+            min-height: 40px !important;
+          }
+
+          /* Empty state message */
+          .text-muted-foreground.text-center.py-8 {
+            padding: 2rem 1rem !important;
+            font-size: 0.9rem;
+          }
+
+          /* Dialog content */
+          .sm\\:max-w-md {
+            max-width: calc(100% - 2rem) !important;
+            margin: 0 1rem;
+          }
+
+          /* Dialog buttons */
+          .flex.justify-end.gap-3.pt-4 {
+            flex-direction: column-reverse !important;
+            gap: 0.5rem !important;
+          }
+
+          .flex.justify-end.gap-3.pt-4 button {
+            width: 100%;
+          }
+
+          /* Input fields */
+          input[type="number"],
+          input[type="text"],
+          textarea {
+            font-size: 16px !important; /* Prevents zoom on iOS */
+          }
+
+          /* Textarea height */
+          textarea {
+            min-height: 80px !important;
+          }
+
+          /* Switch and label */
+          .flex.items-center.gap-2:has(.data-\\[state\\=checked\\]) {
+            gap: 0.75rem !important;
+          }
+        }
+
+        /* Small tablets (641px - 768px) */
+        @media (min-width: 641px) and (max-width: 768px) {
+          /* Form modal */
+          .fixed.inset-0 .max-w-md {
+            max-width: 90% !important;
+          }
+
+          /* Trainer cards */
+          .flex.items-center.justify-between.p-4 {
+            padding: 1.25rem !important;
+          }
+
+          /* Trainer avatar */
+          .w-12.h-12 {
+            width: 3.5rem !important;
+            height: 3.5rem !important;
+          }
+
+          /* Font sizes */
+          .font-medium,
+          .text-sm {
+            font-size: 0.925rem !important;
+          }
+        }
+
+        /* Tablets (769px - 1024px) */
+        @media (min-width: 769px) and (max-width: 1024px) {
+          /* Form modal */
+          .fixed.inset-0 .max-w-md {
+            max-width: 500px !important;
+          }
+
+          /* Trainer cards */
+          .space-y-3 {
+            gap: 0.875rem !important;
+          }
+        }
+
+        /* Landscape mobile devices */
+        @media (max-height: 500px) and (orientation: landscape) {
+          /* Form modal height */
+          .max-h-\\[90vh\\] {
+            max-height: 95vh !important;
+          }
+
+          /* Reduce form spacing */
+          .space-y-4 {
+            gap: 0.5rem !important;
+          }
+
+          /* Form container padding */
+          .fixed.inset-0 .bg-card.border {
+            padding: 0.75rem !important;
+          }
+
+          /* Title size */
+          .font-display.text-xl {
+            font-size: 1rem !important;
+          }
+
+          /* Button padding */
+          .flex.gap-2.pt-4 {
+            padding-top: 0.75rem !important;
+          }
+        }
+
+        /* Touch device improvements */
+        @media (hover: none) and (pointer: coarse) {
+          /* Minimum touch targets */
+          button,
+          input,
+          textarea {
+            min-height: 44px !important;
+          }
+
+          button[size="icon"] {
+            min-width: 44px !important;
+            min-height: 44px !important;
+          }
+
+          button[size="sm"] {
+            min-height: 40px !important;
+            padding: 0.5rem 1rem !important;
+          }
+
+          /* Increase spacing for easier tapping */
+          .flex.items-center.gap-2 {
+            gap: 0.75rem !important;
+          }
+        }
+
+        /* Improve scrolling on iOS */
+        .overflow-y-auto {
+          -webkit-overflow-scrolling: touch;
+        }
+
+        /* Backdrop blur performance */
+        .backdrop-blur-sm {
+          -webkit-backdrop-filter: blur(8px);
+          backdrop-filter: blur(8px);
+        }
+
+        /* Safe area for notched devices */
+        @supports (padding: max(0px)) {
+          .fixed.inset-0 > div {
+            padding-left: max(1rem, env(safe-area-inset-left)) !important;
+            padding-right: max(1rem, env(safe-area-inset-right)) !important;
+            padding-bottom: max(1rem, env(safe-area-inset-bottom)) !important;
+          }
+        }
+
+        /* Prevent horizontal scroll */
+        .space-y-3 {
+          overflow-x: hidden;
+        }
+
+        /* Card responsiveness */
+        @media (max-width: 640px) {
+          .bg-card.border-border {
+            border-radius: 0.75rem !important;
+          }
+
+          /* Card content padding */
+          [class*="CardContent"] {
+            padding: 1rem !important;
+          }
+
+          /* Card header padding */
+          [class*="CardHeader"] {
+            padding: 1rem !important;
+          }
+        }
+
+        /* Dark mode optimizations */
+        @media (prefers-color-scheme: dark) {
+          /* Form modal shadow */
+          .fixed.inset-0 .shadow-xl {
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5),
+                        0 10px 10px -5px rgba(0, 0, 0, 0.4) !important;
+          }
+
+          /* Backdrop */
+          .bg-background\\/80 {
+            background-color: rgba(0, 0, 0, 0.85) !important;
+          }
+        }
+
+        /* Light mode optimizations */
+        @media (prefers-color-scheme: light) {
+          /* Form modal shadow */
+          .fixed.inset-0 .shadow-xl {
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+                        0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+          }
+        }
+
+        /* Accessibility - Reduced motion */
+        @media (prefers-reduced-motion: reduce) {
+          * {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+          }
+        }
+
+        /* High contrast mode support */
+        @media (prefers-contrast: high) {
+          .border,
+          .border-border {
+            border-width: 2px !important;
+          }
+
+          button {
+            border: 2px solid currentColor !important;
+          }
+        }
+
+        /* Print styles */
+        @media print {
+          .fixed.inset-0 {
+            display: none !important;
+          }
+
+          button {
+            display: none !important;
+          }
+
+          .space-y-3 > div {
+            break-inside: avoid;
+            page-break-inside: avoid;
+          }
+        }
+      `}</style>;

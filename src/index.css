@@ -61,7 +61,15 @@
     --sidebar-border: 0 0% 18%;
     --sidebar-ring: 25 100% 50%;
   }
+  .custom-marker {
+    background: none !important;
+    border: none !important;
+    cursor: move;
+  }
 
+  .custom-marker:hover {
+    opacity: 0.8;
+  }
   /* Custom Scrollbar Styles */
   ::-webkit-scrollbar {
     width: 12px;

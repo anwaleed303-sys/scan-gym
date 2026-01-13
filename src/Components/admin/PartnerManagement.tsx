@@ -222,9 +222,6 @@ Login URL: ${window.location.origin}/partner-login`;
           fullName,
           gymId: selectedGymId,
         },
-        headers: {
-          Authorization: `Bearer ${session.access_token}`,
-        },
       });
 
       console.log("Full response:", response);
@@ -764,3 +761,501 @@ Login URL: ${window.location.origin}/partner-login`;
     </>
   );
 };
+<style>{`
+        /* ============================================
+           PARTNER MANAGEMENT RESPONSIVE STYLES
+           ============================================ */
+
+        /* Mobile First - Base Styles (320px+) */
+        @media (max-width: 640px) {
+          /* Card header stacking */
+          .flex.flex-row.items-center.justify-between {
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            gap: 0.75rem;
+          }
+
+          .flex.flex-row.items-center.justify-between > button,
+          .flex.flex-row.items-center.justify-between > div + button {
+            width: 100%;
+          }
+
+          /* Dialog adjustments */
+          .max-w-md {
+            max-width: calc(100% - 1rem) !important;
+            margin: 0 0.5rem;
+          }
+
+          /* Dialog content */
+          [class*="DialogContent"] {
+            padding: 1.25rem !important;
+          }
+
+          /* Form spacing */
+          .space-y-4 {
+            gap: 0.875rem !important;
+          }
+
+          /* Input fields */
+          input[type="email"],
+          input[type="text"],
+          input[type="password"] {
+            font-size: 16px !important; /* Prevents zoom on iOS */
+          }
+
+          /* Password generate button */
+          .flex.gap-2:has(input[type="text"]) button {
+            padding: 0.5rem 0.75rem !important;
+            font-size: 0.875rem;
+            min-width: fit-content;
+          }
+
+          /* Select trigger */
+          [class*="SelectTrigger"] {
+            font-size: 14px !important;
+          }
+
+          /* Select content */
+          [class*="SelectContent"] {
+            max-width: calc(100vw - 2rem) !important;
+          }
+
+          /* Select item with nested content */
+          [class*="SelectItem"] > div {
+            max-width: 100%;
+          }
+
+          [class*="SelectItem"] span {
+            white-space: normal !important;
+            word-break: break-word;
+          }
+
+          /* Gym details card */
+          .p-3.bg-secondary\\/50 {
+            padding: 0.875rem !important;
+          }
+
+          .p-3.bg-secondary\\/50 .space-y-1 {
+            gap: 0.5rem !important;
+          }
+
+          /* Submit button */
+          button[type="submit"] {
+            min-height: 44px !important;
+          }
+
+          /* Empty state */
+          .text-center.py-12 {
+            padding: 3rem 1rem !important;
+          }
+
+          .w-12.h-12.mx-auto {
+            width: 2.5rem !important;
+            height: 2.5rem !important;
+          }
+
+          /* Partner cards */
+          .p-4.bg-secondary\\/50 {
+            padding: 1rem !important;
+          }
+
+          .flex.items-start.justify-between {
+            flex-direction: column !important;
+            gap: 1rem;
+          }
+
+          .flex.items-start.justify-between > button {
+            align-self: flex-end;
+            margin-top: -0.5rem;
+          }
+
+          /* Partner info section */
+          .flex.items-start.gap-4 {
+            width: 100%;
+            gap: 0.75rem !important;
+          }
+
+          /* Partner avatar */
+          .w-10.h-10.bg-primary\\/10 {
+            width: 2.5rem !important;
+            height: 2.5rem !important;
+            flex-shrink: 0;
+          }
+
+          .w-10.h-10.bg-primary\\/10 svg {
+            width: 1.125rem !important;
+            height: 1.125rem !important;
+          }
+
+          /* Partner details */
+          .flex.items-start.gap-4 > div:last-child {
+            flex: 1;
+            min-width: 0;
+          }
+
+          /* Partner name and gym */
+          .font-medium {
+            font-size: 0.9375rem !important;
+            word-break: break-word;
+          }
+
+          .flex.items-center.gap-2.text-sm {
+            flex-wrap: wrap;
+            gap: 0.5rem !important;
+          }
+
+          /* Gym details text */
+          .space-y-1.text-xs {
+            gap: 0.375rem !important;
+            font-size: 0.75rem !important;
+          }
+
+          /* Service badges in partner cards */
+          .flex.flex-wrap.gap-1 {
+            gap: 0.375rem !important;
+            margin-top: 0.5rem !important;
+          }
+
+          .flex.flex-wrap.gap-1 [class*="Badge"] {
+            font-size: 0.65rem !important;
+            padding: 0.125rem 0.375rem !important;
+          }
+
+          /* Inactive gym badge */
+          [class*="Badge"][class*="destructive"] {
+            font-size: 0.7rem !important;
+          }
+
+          /* Delete button */
+          .shrink-0 button[class*="icon"] {
+            min-width: 40px !important;
+            min-height: 40px !important;
+          }
+
+          /* Credentials Dialog */
+          .bg-card.border-border [class*="DialogHeader"] {
+            padding-bottom: 0.5rem !important;
+          }
+
+          /* Credentials content */
+          .p-4.bg-secondary\\/50.rounded-lg {
+            padding: 0.875rem !important;
+          }
+
+          .p-4.bg-secondary\\/50.rounded-lg .space-y-3 {
+            gap: 0.75rem !important;
+          }
+
+          /* Credential rows */
+          .flex.items-center.justify-between {
+            gap: 0.5rem;
+          }
+
+          .flex.items-center.justify-between > div {
+            flex: 1;
+            min-width: 0;
+          }
+
+          /* Credential labels */
+          .text-xs.text-muted-foreground {
+            font-size: 0.7rem !important;
+          }
+
+          /* Credential values */
+          .font-mono.text-sm {
+            font-size: 0.8125rem !important;
+            word-break: break-all;
+          }
+
+          /* Copy buttons */
+          button[class*="ghost"][class*="icon"] {
+            min-width: 36px !important;
+            min-height: 36px !important;
+            flex-shrink: 0;
+          }
+
+          /* Copy all button */
+          button.w-full:has(svg) {
+            min-height: 44px !important;
+          }
+
+          /* Warning text */
+          .text-xs.text-center.text-muted-foreground {
+            font-size: 0.7rem !important;
+            padding: 0 0.5rem;
+          }
+
+          /* Delete confirmation dialog */
+          .sm\\:max-w-md {
+            max-width: calc(100% - 2rem) !important;
+            margin: 0 1rem;
+          }
+
+          .flex.justify-end.gap-3.pt-4 {
+            flex-direction: column-reverse !important;
+            gap: 0.5rem !important;
+          }
+
+          .flex.justify-end.gap-3.pt-4 button {
+            width: 100%;
+          }
+        }
+
+        /* Small tablets (641px - 768px) */
+        @media (min-width: 641px) and (max-width: 768px) {
+          /* Dialog width */
+          .max-w-md {
+            max-width: 90% !important;
+          }
+
+          /* Partner cards */
+          .p-4.bg-secondary\\/50 {
+            padding: 1.25rem !important;
+          }
+
+          /* Font sizes */
+          .font-medium,
+          .text-sm {
+            font-size: 0.925rem !important;
+          }
+
+          .text-xs {
+            font-size: 0.8rem !important;
+          }
+
+          /* Avatar size */
+          .w-10.h-10.bg-primary\\/10 {
+            width: 2.75rem !important;
+            height: 2.75rem !important;
+          }
+        }
+
+        /* Tablets (769px - 1024px) */
+        @media (min-width: 769px) and (max-width: 1024px) {
+          /* Dialog width */
+          .max-w-md {
+            max-width: 600px !important;
+          }
+
+          /* Partner cards spacing */
+          .space-y-4 {
+            gap: 1rem !important;
+          }
+        }
+
+        /* Landscape mobile devices */
+        @media (max-height: 500px) and (orientation: landscape) {
+          /* Reduce dialog height */
+          [class*="DialogContent"] {
+            max-height: 90vh !important;
+            overflow-y: auto !important;
+          }
+
+          /* Reduce spacing */
+          .space-y-4 {
+            gap: 0.5rem !important;
+          }
+
+          .space-y-3 {
+            gap: 0.5rem !important;
+          }
+
+          .space-y-2 {
+            gap: 0.375rem !important;
+          }
+
+          /* Smaller padding */
+          .p-4 {
+            padding: 0.75rem !important;
+          }
+
+          .p-3 {
+            padding: 0.625rem !important;
+          }
+
+          /* Empty state */
+          .text-center.py-12 {
+            padding: 2rem 1rem !important;
+          }
+        }
+
+        /* Touch device improvements */
+        @media (hover: none) and (pointer: coarse) {
+          /* Minimum touch targets */
+          button,
+          input,
+          select,
+          [role="combobox"] {
+            min-height: 44px !important;
+          }
+
+          button[class*="icon"] {
+            min-width: 44px !important;
+            min-height: 44px !important;
+          }
+
+          /* Increase spacing for easier tapping */
+          .flex.gap-2 {
+            gap: 0.75rem !important;
+          }
+
+          .flex.gap-4 {
+            gap: 1rem !important;
+          }
+
+          /* Select items */
+          [class*="SelectItem"] {
+            min-height: 44px !important;
+            padding: 0.75rem !important;
+          }
+        }
+
+        /* Improve scrolling on iOS */
+        [class*="overflow-y-auto"],
+        [class*="DialogContent"] {
+          -webkit-overflow-scrolling: touch;
+        }
+
+        /* Select dropdown positioning fix for mobile */
+        @media (max-width: 640px) {
+          [class*="SelectContent"] {
+            max-height: 60vh !important;
+          }
+        }
+
+        /* Badge text wrapping */
+        [class*="Badge"] {
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+
+        @media (max-width: 640px) {
+          [class*="Badge"] {
+            max-width: 100%;
+          }
+        }
+
+        /* Safe area for notched devices */
+        @supports (padding: max(0px)) {
+          [class*="DialogContent"],
+          .bg-card.border-border {
+            padding-left: max(1rem, env(safe-area-inset-left)) !important;
+            padding-right: max(1rem, env(safe-area-inset-right)) !important;
+          }
+
+          @media (max-width: 640px) {
+            [class*="DialogContent"],
+            .bg-card.border-border {
+              padding-bottom: max(1rem, env(safe-area-inset-bottom)) !important;
+            }
+          }
+        }
+
+        /* Loading spinner animation */
+        @keyframes spin {
+          to {
+            transform: rotate(360deg);
+          }
+        }
+
+        .animate-spin {
+          animation: spin 1s linear infinite;
+        }
+
+        /* Dark mode optimizations */
+        @media (prefers-color-scheme: dark) {
+          /* Dialog shadow */
+          [class*="DialogContent"] {
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5),
+                        0 10px 10px -5px rgba(0, 0, 0, 0.4) !important;
+          }
+
+          /* Code/mono font readability */
+          .font-mono {
+            color: hsl(var(--foreground)) !important;
+          }
+        }
+
+        /* Light mode optimizations */
+        @media (prefers-color-scheme: light) {
+          /* Dialog shadow */
+          [class*="DialogContent"] {
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+                        0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+          }
+        }
+
+        /* Prevent text selection on buttons */
+        button {
+          user-select: none;
+          -webkit-user-select: none;
+        }
+
+        /* Improve input readability */
+        input,
+        select,
+        [role="combobox"] {
+          -webkit-appearance: none;
+          appearance: none;
+        }
+
+        /* Fix for iOS input borders */
+        @supports (-webkit-touch-callout: none) {
+          input,
+          select,
+          [role="combobox"] {
+            border-radius: 0.375rem;
+          }
+        }
+
+        /* Accessibility - Reduced motion */
+        @media (prefers-reduced-motion: reduce) {
+          * {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+          }
+        }
+
+        /* High contrast mode support */
+        @media (prefers-contrast: high) {
+          .border,
+          .border-border {
+            border-width: 2px !important;
+          }
+
+          button {
+            border: 2px solid currentColor !important;
+          }
+
+          [class*="Badge"] {
+            border: 1px solid currentColor !important;
+          }
+        }
+
+        /* Focus visible styles for keyboard navigation */
+        button:focus-visible,
+        input:focus-visible,
+        select:focus-visible {
+          outline: 2px solid hsl(var(--primary)) !important;
+          outline-offset: 2px !important;
+        }
+
+        /* Print styles */
+        @media print {
+          button:not(.no-print) {
+            display: none !important;
+          }
+
+          .space-y-4 > div {
+            break-inside: avoid;
+            page-break-inside: avoid;
+          }
+
+          [class*="DialogContent"] {
+            box-shadow: none !important;
+            border: 1px solid #000 !important;
+          }
+        }
+      `}</style>;

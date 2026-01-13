@@ -1074,3 +1074,598 @@ export const OrderManagement = ({
     </>
   );
 };
+<style>{`
+        /* ============================================
+           ORDER MANAGEMENT RESPONSIVE STYLES
+           ============================================ */
+
+        /* Mobile First - Base Styles (320px+) */
+        @media (max-width: 640px) {
+          /* Card header adjustments */
+          .flex.flex-col.sm\\:flex-row.items-start.sm\\:items-center.justify-between {
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            gap: 1rem;
+          }
+
+          /* Filter button full width on mobile */
+          .flex.flex-col.sm\\:flex-row.items-start.sm\\:items-center.justify-between button {
+            width: 100% !important;
+          }
+
+          /* Stats counters */
+          .flex.flex-wrap.gap-4.text-sm {
+            gap: 0.75rem !important;
+            font-size: 0.875rem !important;
+          }
+
+          /* Order card adjustments */
+          .mb-4.border-l-4 {
+            margin-bottom: 1rem !important;
+          }
+
+          /* Order card header */
+          .flex.flex-col.sm\\:flex-row.sm\\:items-center.justify-between.gap-3 {
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            gap: 0.75rem;
+          }
+
+          /* Order number and date */
+          .text-lg.flex.items-center.gap-2 {
+            font-size: 1rem !important;
+            flex-wrap: wrap;
+          }
+
+          .text-sm.text-muted-foreground {
+            font-size: 0.8125rem !important;
+            word-break: break-word;
+          }
+
+          /* Status badge container */
+          .flex.items-center.gap-3 {
+            width: 100%;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.5rem !important;
+          }
+
+          /* Auto-activate timer */
+          .text-xs.text-orange-600 {
+            font-size: 0.7rem !important;
+          }
+
+          /* Customer details section */
+          .p-4.bg-muted\\/50 {
+            padding: 0.875rem !important;
+          }
+
+          .space-y-3 {
+            gap: 0.75rem !important;
+          }
+
+          .flex.items-start.gap-3 {
+            gap: 0.75rem !important;
+          }
+
+          /* Icons in details */
+          .w-5.h-5.text-primary {
+            width: 1.125rem !important;
+            height: 1.125rem !important;
+          }
+
+          /* Customer info text */
+          .font-semibold.text-sm {
+            font-size: 0.875rem !important;
+          }
+
+          .text-sm.space-y-1 {
+            font-size: 0.8125rem !important;
+            gap: 0.25rem !important;
+          }
+
+          .break-words,
+          .break-all {
+            word-break: break-word;
+            overflow-wrap: break-word;
+          }
+
+          /* Order items section */
+          .space-y-2 {
+            gap: 0.5rem !important;
+          }
+
+          .flex.justify-between.items-center.p-2 {
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            padding: 0.75rem !important;
+            gap: 0.5rem;
+          }
+
+          .flex.justify-between.items-center.p-2 > div:first-child {
+            width: 100%;
+          }
+
+          .flex.justify-between.items-center.p-2 > p {
+            width: 100%;
+            text-align: right;
+          }
+
+          /* Total amount row */
+          .flex.justify-between.font-bold.text-lg {
+            font-size: 1rem !important;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+          }
+
+          /* Admin response box */
+          .bg-blue-50,
+          .bg-yellow-50,
+          .dark\\:bg-green-950 {
+            padding: 0.75rem !important;
+          }
+
+          /* Warning box */
+          .bg-yellow-50.dark\\:bg-yellow-950.p-3 {
+            padding: 0.75rem !important;
+            margin-bottom: 0.75rem !important;
+          }
+
+          .text-xs.text-yellow-800 {
+            font-size: 0.7rem !important;
+            line-height: 1.4;
+          }
+
+          /* Action buttons */
+          .flex.flex-col.sm\\:flex-row.gap-2 {
+            flex-direction: column !important;
+            gap: 0.5rem !important;
+          }
+
+          .flex.flex-col.sm\\:flex-row.gap-2 button {
+            width: 100% !important;
+            flex: none !important;
+            min-height: 44px !important;
+          }
+
+          /* Payment details box */
+          .dark\\:bg-green-950.p-4 {
+            padding: 0.875rem !important;
+          }
+
+          .dark\\:bg-green-950.p-4 .text-sm {
+            font-size: 0.8125rem !important;
+          }
+
+          /* Section headers */
+          .text-lg.font-semibold.mb-3 {
+            font-size: 1rem !important;
+            margin-bottom: 0.75rem !important;
+          }
+
+          /* Empty state */
+          .text-center.py-12 {
+            padding: 3rem 1rem !important;
+          }
+
+          .w-16.h-16 {
+            width: 3rem !important;
+            height: 3rem !important;
+          }
+
+          /* Dialog adjustments */
+          .max-w-md {
+            max-width: calc(100% - 1rem) !important;
+            margin: 0 0.5rem;
+          }
+
+          /* Dialog content */
+          [class*="DialogContent"] {
+            padding: 1.25rem !important;
+          }
+
+          /* Filter dialog */
+          .space-y-4 {
+            gap: 0.875rem !important;
+          }
+
+          .space-y-2 {
+            gap: 0.5rem !important;
+          }
+
+          /* Input fields */
+          input[type="date"],
+          input[type="text"],
+          select,
+          textarea {
+            font-size: 16px !important; /* Prevents zoom on iOS */
+          }
+
+          /* Select dropdown */
+          select {
+            padding: 0.625rem !important;
+          }
+
+          /* Dialog buttons */
+          .flex.gap-2:has(button) {
+            flex-direction: column-reverse !important;
+            gap: 0.5rem !important;
+          }
+
+          .flex.gap-2 button {
+            width: 100% !important;
+            flex: none !important;
+          }
+
+          /* Delete dialog */
+          .max-w-md p {
+            font-size: 0.9375rem !important;
+          }
+
+          /* Approve dialog payment details */
+          .bg-muted.p-4 {
+            padding: 0.875rem !important;
+          }
+
+          /* Badge styling */
+          [class*="Badge"] {
+            font-size: 0.7rem !important;
+            padding: 0.25rem 0.5rem !important;
+            white-space: nowrap;
+          }
+
+          /* Status indicator dot */
+          .w-2.h-2.rounded-full {
+            width: 0.375rem !important;
+            height: 0.375rem !important;
+          }
+
+          /* Pulse animation for pending orders */
+          .animate-pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+          }
+
+          @keyframes pulse {
+            0%, 100% {
+              opacity: 1;
+            }
+            50% {
+              opacity: 0.5;
+            }
+          }
+
+          /* Print button adjustments */
+          button:has(.lucide-printer) {
+            font-size: 0.875rem !important;
+          }
+        }
+
+        /* Small tablets (641px - 768px) */
+        @media (min-width: 641px) and (max-width: 768px) {
+          /* Dialog width */
+          .max-w-md {
+            max-width: 90% !important;
+          }
+
+          /* Order cards */
+          .mb-4.border-l-4 {
+            margin-bottom: 1.25rem !important;
+          }
+
+          /* Customer details */
+          .p-4.bg-muted\\/50 {
+            padding: 1.25rem !important;
+          }
+
+          /* Font sizes */
+          .text-lg {
+            font-size: 1.0625rem !important;
+          }
+
+          .text-sm {
+            font-size: 0.9rem !important;
+          }
+
+          .text-xs {
+            font-size: 0.8rem !important;
+          }
+        }
+
+        /* Tablets (769px - 1024px) */
+        @media (min-width: 769px) and (max-width: 1024px) {
+          /* Dialog width */
+          .max-w-md {
+            max-width: 600px !important;
+          }
+
+          /* Order cards spacing */
+          .space-y-6 {
+            gap: 1.25rem !important;
+          }
+
+          /* Section spacing */
+          .space-y-4 {
+            gap: 1rem !important;
+          }
+        }
+
+        /* Landscape mobile devices */
+        @media (max-height: 500px) and (orientation: landscape) {
+          /* Dialog height */
+          [class*="DialogContent"] {
+            max-height: 90vh !important;
+            overflow-y: auto !important;
+          }
+
+          /* Reduce spacing */
+          .space-y-6 {
+            gap: 1rem !important;
+          }
+
+          .space-y-4 {
+            gap: 0.75rem !important;
+          }
+
+          .space-y-3 {
+            gap: 0.5rem !important;
+          }
+
+          .space-y-2 {
+            gap: 0.375rem !important;
+          }
+
+          /* Reduce padding */
+          .p-4 {
+            padding: 0.75rem !important;
+          }
+
+          .p-3 {
+            padding: 0.625rem !important;
+          }
+
+          /* Empty state */
+          .text-center.py-12 {
+            padding: 2rem 1rem !important;
+          }
+
+          /* Section headers */
+          .text-lg.font-semibold {
+            font-size: 0.9375rem !important;
+          }
+        }
+
+        /* Touch device improvements */
+        @media (hover: none) and (pointer: coarse) {
+          /* Minimum touch targets */
+          button,
+          input,
+          select,
+          textarea {
+            min-height: 44px !important;
+          }
+
+          button[class*="icon"] {
+            min-width: 44px !important;
+            min-height: 44px !important;
+          }
+
+          /* Increase spacing for easier tapping */
+          .flex.gap-2 {
+            gap: 0.75rem !important;
+          }
+
+          .flex.gap-3 {
+            gap: 1rem !important;
+          }
+
+          /* Select options */
+          select option {
+            min-height: 44px !important;
+            padding: 0.75rem !important;
+          }
+        }
+
+        /* Improve scrolling on iOS */
+        [class*="overflow-y-auto"],
+        [class*="DialogContent"],
+        [class*="CardContent"] {
+          -webkit-overflow-scrolling: touch;
+        }
+
+        /* Fix for border-l-4 on small screens */
+        @media (max-width: 640px) {
+          .border-l-4 {
+            border-left-width: 3px !important;
+          }
+        }
+
+        /* Status badge colors - ensure visibility */
+        .bg-yellow-500 {
+          background-color: rgb(234 179 8) !important;
+        }
+
+        .bg-green-500 {
+          background-color: rgb(34 197 94) !important;
+        }
+
+        .bg-blue-500 {
+          background-color: rgb(59 130 246) !important;
+        }
+
+        .bg-red-500 {
+          background-color: rgb(239 68 68) !important;
+        }
+
+        /* Safe area for notched devices */
+        @supports (padding: max(0px)) {
+          [class*="DialogContent"],
+          [class*="Card"] {
+            padding-left: max(1rem, env(safe-area-inset-left)) !important;
+            padding-right: max(1rem, env(safe-area-inset-right)) !important;
+          }
+
+          @media (max-width: 640px) {
+            [class*="DialogContent"],
+            [class*="Card"] {
+              padding-bottom: max(1rem, env(safe-area-inset-bottom)) !important;
+            }
+          }
+        }
+
+        /* Print styles for bill */
+        @media print {
+          body {
+            background: white !important;
+            color: black !important;
+          }
+
+          .no-print {
+            display: none !important;
+          }
+
+          button:not(.no-print) {
+            display: none !important;
+          }
+
+          .space-y-6 > div {
+            break-inside: avoid;
+            page-break-inside: avoid;
+          }
+
+          .mb-4 {
+            margin-bottom: 1.5rem !important;
+          }
+        }
+
+        /* Dark mode optimizations */
+        @media (prefers-color-scheme: dark) {
+          /* Dialog shadow */
+          [class*="DialogContent"] {
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5),
+                        0 10px 10px -5px rgba(0, 0, 0, 0.4) !important;
+          }
+
+          /* Select dropdown background */
+          select {
+            background-color: hsl(var(--background)) !important;
+          }
+
+          select option {
+            background-color: hsl(var(--background)) !important;
+          }
+
+          /* Warning boxes */
+          .bg-yellow-50 {
+            background-color: rgba(234, 179, 8, 0.1) !important;
+          }
+
+          .bg-blue-50 {
+            background-color: rgba(59, 130, 246, 0.1) !important;
+          }
+        }
+
+        /* Light mode optimizations */
+        @media (prefers-color-scheme: light) {
+          /* Dialog shadow */
+          [class*="DialogContent"] {
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+                        0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+          }
+        }
+
+        /* Textarea in alternate message */
+        textarea {
+          resize: vertical !important;
+          min-height: 100px !important;
+        }
+
+        @media (max-width: 640px) {
+          textarea {
+            min-height: 80px !important;
+          }
+        }
+
+        /* Prevent text selection on non-text elements */
+        button,
+        [class*="Badge"] {
+          user-select: none;
+          -webkit-user-select: none;
+        }
+
+        /* Improve input readability */
+        input,
+        select,
+        textarea {
+          -webkit-appearance: none;
+          appearance: none;
+        }
+
+        /* Fix for iOS input borders */
+        @supports (-webkit-touch-callout: none) {
+          input,
+          select,
+          textarea {
+            border-radius: 0.375rem;
+          }
+        }
+
+        /* Accessibility - Reduced motion */
+        @media (prefers-reduced-motion: reduce) {
+          * {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+          }
+
+          .animate-pulse {
+            animation: none !important;
+          }
+        }
+
+        /* High contrast mode support */
+        @media (prefers-contrast: high) {
+          .border,
+          .border-border {
+            border-width: 2px !important;
+          }
+
+          button {
+            border: 2px solid currentColor !important;
+          }
+
+          [class*="Badge"] {
+            border: 1px solid currentColor !important;
+          }
+
+          .border-l-4 {
+            border-left-width: 4px !important;
+          }
+        }
+
+        /* Focus visible styles for keyboard navigation */
+        button:focus-visible,
+        input:focus-visible,
+        select:focus-visible,
+        textarea:focus-visible {
+          outline: 2px solid hsl(var(--primary)) !important;
+          outline-offset: 2px !important;
+        }
+
+        /* Whitespace handling for long text */
+        .whitespace-pre-wrap {
+          white-space: pre-wrap;
+          word-wrap: break-word;
+        }
+
+        /* Icon sizing consistency */
+        .lucide {
+          flex-shrink: 0;
+        }
+
+        /* Card border on mobile */
+        @media (max-width: 640px) {
+          .border-l-primary {
+            border-left-color: hsl(var(--primary)) !important;
+          }
+        }
+      `}</style>;

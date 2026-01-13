@@ -7,6 +7,7 @@ import {
   Facebook,
   Instagram,
   Twitter,
+  Linkedin,
 } from "lucide-react";
 const Footer = () => {
   return (
@@ -28,20 +29,41 @@ const Footer = () => {
               unlimited gyms.
             </p>
             <div className="flex items-center gap-4">
+              {/* Instagram */}
               <a
-                href="#"
+                href="https://www.instagram.com/scangym/"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all"
-              >
-                <Facebook className="w-5 h-5" />
-              </a>
-              <a
-                href="#"
-                className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all border-solid"
               >
                 <Instagram className="w-5 h-5" />
               </a>
+
+              {/* TikTok (no Lucide icon → using Twitter/X style or custom SVG if needed) */}
               <a
-                href="#"
+                href="https://www.tiktok.com/@scangym"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all"
+              >
+                <Twitter className="w-5 h-5" />
+              </a>
+
+              {/* LinkedIn */}
+              <a
+                href="https://www.linkedin.com/company/scangym/"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all"
+              >
+                <Linkedin className="w-5 h-5" />
+              </a>
+
+              {/* X (Twitter) */}
+              <a
+                href="https://x.com/scangympk/"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="w-10 h-10 rounded-lg bg-secondary flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all"
               >
                 <Twitter className="w-5 h-5" />
@@ -137,7 +159,7 @@ const Footer = () => {
               </li>
               <li className="flex items-start gap-3 text-muted-foreground text-sm">
                 <MapPin className="w-4 h-4 text-primary mt-0.5" />
-                <span className="bg-secondary">​Head Office, MULTAN </span>
+                <span className="">​Head Office, MULTAN </span>
               </li>
             </ul>
           </div>

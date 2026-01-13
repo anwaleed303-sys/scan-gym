@@ -45,8 +45,9 @@ import {
   TableRow,
 } from "../ui/table";
 import { Switch } from "../ui/switch";
-import mapboxgl from "mapbox-gl";
-import "mapbox-gl/dist/mapbox-gl.css";
+import L from "leaflet";
+import "leaflet/dist/leaflet.css";
+import { OpenStreetMapProvider } from "leaflet-geosearch";
 
 interface Gym {
   id: string;
@@ -86,12 +87,19 @@ export const GymManagement = ({ gyms, onRefresh }: GymManagementProps) => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingGym, setEditingGym] = useState<Gym | null>(null);
   const [loading, setLoading] = useState(false);
-  const [mapboxToken, setMapboxToken] = useState<string | null>(null);
+
   const { toast } = useToast();
 
   const mapContainer = useRef<HTMLDivElement>(null);
-  const map = useRef<mapboxgl.Map | null>(null);
-  const marker = useRef<mapboxgl.Marker | null>(null);
+  const map = useRef<L.Map | null>(null);
+  const marker = useRef<L.Marker | null>(null);
+  const [isSearchingLocation, setIsSearchingLocation] = useState(false);
+  const [userLocation, setUserLocation] = useState<{
+    lat: number;
+    lng: number;
+  } | null>(null);
+  const userMarker = useRef<L.Marker | null>(null);
+  const provider = useRef(new OpenStreetMapProvider());
   const [deleteDialog, setDeleteDialog] = useState<{
     open: boolean;
     id: string | null;
@@ -105,8 +113,8 @@ export const GymManagement = ({ gyms, onRefresh }: GymManagementProps) => {
     name: "",
     city: "",
     address: "",
-    latitude: 24.8607,
-    longitude: 67.0011,
+    latitude: 31.5204, // Center of Pakistan (Lahore)
+    longitude: 74.3587,
     opening_time: "06:00",
     closing_time: "22:00",
     services: [] as string[],
@@ -117,82 +125,120 @@ export const GymManagement = ({ gyms, onRefresh }: GymManagementProps) => {
   });
 
   useEffect(() => {
-    fetchMapboxToken();
-  }, []);
-
-  useEffect(() => {
-    if (isDialogOpen && mapboxToken && mapContainer.current) {
-      initializeMap();
+    if (isDialogOpen && mapContainer.current && !map.current) {
+      setTimeout(() => {
+        // initializeMap();
+      }, 100);
     }
+
     return () => {
       if (map.current) {
         map.current.remove();
         map.current = null;
+        marker.current = null;
+        userMarker.current = null;
       }
     };
-  }, [isDialogOpen, mapboxToken]);
-
-  const fetchMapboxToken = async () => {
-    try {
-      const { data, error } = await supabase.functions.invoke(
-        "get-mapbox-token"
-      );
-      if (error) throw error;
-      setMapboxToken(data.token);
-    } catch (error) {
-      console.error("Error fetching Mapbox token:", error);
+  }, [isDialogOpen]);
+  useEffect(() => {
+    if (map.current && marker.current && editingGym && isDialogOpen) {
+      // Update marker position when editing gym
+      marker.current.setLatLng([formData.latitude, formData.longitude]);
+      map.current.setView([formData.latitude, formData.longitude], 15);
     }
-  };
+  }, [editingGym, isDialogOpen, formData.latitude, formData.longitude]);
 
-  const initializeMap = () => {
-    if (!mapContainer.current || !mapboxToken || map.current) return;
+  const searchLocation = async () => {
+    if (!formData.address.trim()) {
+      toast({
+        title: "Missing address",
+        description: "Please enter the exact Google Maps address or Plus Code",
+        variant: "destructive",
+        duration: 3000,
+      });
+      return;
+    }
 
-    mapboxgl.accessToken = mapboxToken;
+    setIsSearchingLocation(true);
+    try {
+      // Construct full search query with address and city
+      const searchQuery = formData.address.includes(formData.city)
+        ? formData.address
+        : `${formData.address}, ${formData.city}, Pakistan`;
 
-    map.current = new mapboxgl.Map({
-      container: mapContainer.current,
-      style: "mapbox://styles/mapbox/streets-v12",
-      center: [formData.longitude, formData.latitude],
-      zoom: 12,
-    });
+      console.log("Searching for:", searchQuery);
 
-    map.current.addControl(new mapboxgl.NavigationControl(), "top-right");
+      const results = await provider.current.search({ query: searchQuery });
 
-    // Add marker
-    marker.current = new mapboxgl.Marker({ draggable: true, color: "#10b981" })
-      .setLngLat([formData.longitude, formData.latitude])
-      .addTo(map.current);
+      if (results.length > 0) {
+        const { y: lat, x: lng, label } = results[0];
 
-    // Update coordinates when marker is dragged
-    marker.current.on("dragend", () => {
-      const lngLat = marker.current?.getLngLat();
-      if (lngLat) {
+        console.log("Found location:", { lat, lng, label });
+
+        // Validate coordinates
+        if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+          throw new Error("Invalid coordinates received");
+        }
+
         setFormData((prev) => ({
           ...prev,
-          latitude: lngLat.lat,
-          longitude: lngLat.lng,
+          latitude: lat,
+          longitude: lng,
         }));
+
+        if (map.current && marker.current) {
+          marker.current.setLatLng([lat, lng]);
+          map.current.setView([lat, lng], 17);
+
+          marker.current.setPopupContent(
+            `<strong>${formData.name || "Gym Location"}</strong><br/>${
+              formData.address
+            }<br/><small>${lat.toFixed(6)}, ${lng.toFixed(6)}</small>`
+          );
+          marker.current.openPopup();
+        }
+
+        toast({
+          title: "Location found!",
+          description: `${label || searchQuery}`,
+          duration: 3000,
+        });
+      } else {
+        toast({
+          title: "Location not found",
+          description:
+            "Please verify the address is correct. Try using Google Maps Plus Code (e.g., F47G+XR6)",
+          variant: "destructive",
+          duration: 4000,
+        });
       }
-    });
-
-    // Update marker when clicking on map
-    map.current.on("click", (e) => {
-      marker.current?.setLngLat(e.lngLat);
-      setFormData((prev) => ({
-        ...prev,
-        latitude: e.lngLat.lat,
-        longitude: e.lngLat.lng,
-      }));
-    });
+    } catch (error: any) {
+      console.error("Search error:", error);
+      toast({
+        title: "Search failed",
+        description: error.message || "Could not search location",
+        variant: "destructive",
+        duration: 3000,
+      });
+    } finally {
+      setIsSearchingLocation(false);
+    }
   };
+  // const initializeMap = () => {
+  //   if (!mapContainer.current || map.current) return;
 
+  //   map.current = L.map(mapContainer.current).setView(
+  //     [formData.latitude, formData.longitude],
+  //     editingGym ? 15 : 6
+  //   );
+  // };
   const resetForm = () => {
     setFormData({
       name: "",
       city: "",
       address: "",
-      latitude: 24.8607,
-      longitude: 67.0011,
+      latitude: 31.5204,
+      longitude: 74.3587,
       opening_time: "06:00",
       closing_time: "22:00",
       services: [],
@@ -215,8 +261,8 @@ export const GymManagement = ({ gyms, onRefresh }: GymManagementProps) => {
       name: gym.name,
       city: gym.city,
       address: gym.address || "",
-      latitude: gym.latitude || 24.8607,
-      longitude: gym.longitude || 67.0011,
+      latitude: gym.latitude || 31.5204,
+      longitude: gym.longitude || 74.3587,
       opening_time: gym.opening_time?.slice(0, 5) || "06:00",
       closing_time: gym.closing_time?.slice(0, 5) || "22:00",
       services: gym.services || [],
@@ -245,10 +291,21 @@ export const GymManagement = ({ gyms, onRefresh }: GymManagementProps) => {
   };
 
   const handleSubmit = async () => {
-    if (!formData.name || !formData.city) {
+    if (!formData.address.trim()) {
       toast({
-        title: "Missing fields",
-        description: "Please fill in at least the name and city.",
+        title: "Missing address",
+        description: "Please enter the exact Google Maps address or Plus Code",
+        variant: "destructive",
+        duration: 3000,
+      });
+      return;
+    }
+    // Check if coordinates are valid
+    if (!formData.latitude || !formData.longitude) {
+      toast({
+        title: "Missing location",
+        description:
+          "Please click 'Find Exact Location on Map' to set coordinates",
         variant: "destructive",
         duration: 3000,
       });
@@ -460,7 +517,7 @@ export const GymManagement = ({ gyms, onRefresh }: GymManagementProps) => {
             </DialogDescription>
           </DialogHeader>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 ">
             {/* Form Fields */}
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
@@ -489,7 +546,9 @@ export const GymManagement = ({ gyms, onRefresh }: GymManagementProps) => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="address">Address</Label>
+                <Label htmlFor="address">
+                  Google Plus Code / Full Address *
+                </Label>
                 <Input
                   id="address"
                   value={formData.address}
@@ -499,9 +558,30 @@ export const GymManagement = ({ gyms, onRefresh }: GymManagementProps) => {
                       address: e.target.value,
                     }))
                   }
-                  placeholder="Full address"
+                  placeholder="e.g., F47G+XR6, Bhai Wala, Faisalabad"
                 />
+                <p className="text-xs text-muted-foreground">
+                  Enter the exact Google Maps Plus Code or registered address
+                </p>
               </div>
+
+              {/* <div className="space-y-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full gap-2"
+                  onClick={searchLocation}
+                  disabled={isSearchingLocation || !formData.address}
+                >
+                  <MapPin className="w-4 h-4" />
+                  {isSearchingLocation
+                    ? "Searching Google Maps..."
+                    : "Find Exact Location on Map"}
+                </Button>
+                <p className="text-xs text-muted-foreground text-center">
+                  Click to locate the exact Google-registered address on map
+                </p>
+              </div> */}
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -630,10 +710,27 @@ export const GymManagement = ({ gyms, onRefresh }: GymManagementProps) => {
                   className="data-[state=checked]:bg-orange-500 [&>span]:data-[state=checked]:bg-white"
                 />
               </div>
+              <div className="flex justify-end gap-3 pt-4 border-t">
+                <Button
+                  variant="outline"
+                  onClick={() => setIsDialogOpen(false)}
+                >
+                  <X className="w-4 h-4 mr-2" />
+                  Cancel
+                </Button>
+                <Button onClick={handleSubmit} disabled={loading}>
+                  <Save className="w-4 h-4 mr-2" />
+                  {loading
+                    ? "Saving..."
+                    : editingGym
+                    ? "Update Gym"
+                    : "Add Gym"}
+                </Button>
+              </div>
             </div>
 
             {/* Map Section */}
-            <div className="space-y-4">
+            {/* <div className="space-y-4">
               <div className="space-y-2">
                 <Label>Location on Map</Label>
                 <p className="text-sm text-muted-foreground">
@@ -641,16 +738,10 @@ export const GymManagement = ({ gyms, onRefresh }: GymManagementProps) => {
                 </p>
               </div>
 
-              {mapboxToken ? (
-                <div
-                  ref={mapContainer}
-                  className="w-full h-[400px] rounded-lg border overflow-hidden"
-                />
-              ) : (
-                <div className="w-full h-[400px] rounded-lg border flex items-center justify-center bg-muted">
-                  <p className="text-muted-foreground">Loading map...</p>
-                </div>
-              )}
+              <div
+                ref={mapContainer}
+                className="w-full h-[400px] rounded-lg border overflow-hidden z-0"
+              />
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -670,18 +761,7 @@ export const GymManagement = ({ gyms, onRefresh }: GymManagementProps) => {
                   />
                 </div>
               </div>
-            </div>
-          </div>
-
-          <div className="flex justify-end gap-3 pt-4 border-t">
-            <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
-              <X className="w-4 h-4 mr-2" />
-              Cancel
-            </Button>
-            <Button onClick={handleSubmit} disabled={loading}>
-              <Save className="w-4 h-4 mr-2" />
-              {loading ? "Saving..." : editingGym ? "Update Gym" : "Add Gym"}
-            </Button>
+            </div> */}
           </div>
         </DialogContent>
       </Dialog>
@@ -714,3 +794,289 @@ export const GymManagement = ({ gyms, onRefresh }: GymManagementProps) => {
     </Card>
   );
 };
+<style>{`
+        /* ============================================
+           GYM MANAGEMENT RESPONSIVE STYLES
+           ============================================ */
+
+        /* Mobile First - Base Styles (320px+) */
+        @media (max-width: 640px) {
+          /* Dialog adjustments */
+          [class*="max-w-4xl"] {
+            max-width: 100% !important;
+            margin: 0 0.5rem !important;
+          }
+
+          [class*="max-h-"][class*="90vh"] {
+            max-height: 100vh !important;
+          }
+
+          /* Grid layouts to single column on mobile */
+          .grid.grid-cols-2 {
+            grid-template-columns: 1fr !important;
+          }
+
+          .grid.lg\\:grid-cols-2 {
+            grid-template-columns: 1fr !important;
+          }
+
+          /* Table responsiveness - card layout */
+          .rounded-md.border table {
+            display: block;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+          }
+
+          .rounded-md.border thead {
+            display: none;
+          }
+
+          .rounded-md.border tbody {
+            display: block;
+          }
+
+          .rounded-md.border tr {
+            display: block;
+            margin-bottom: 1rem;
+            border: 1px solid hsl(var(--border));
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+            background: hsl(var(--card));
+          }
+
+          .rounded-md.border td {
+            display: block;
+            text-align: left !important;
+            padding: 0.5rem 0 !important;
+            border: none !important;
+            position: relative;
+            padding-left: 45% !important;
+            min-height: 2rem;
+          }
+
+          .rounded-md.border td::before {
+            content: attr(data-label);
+            position: absolute;
+            left: 0;
+            width: 40%;
+            padding-right: 10px;
+            white-space: nowrap;
+            font-weight: 600;
+            font-size: 0.875rem;
+            color: hsl(var(--muted-foreground));
+          }
+
+          /* Labels for mobile table */
+          .rounded-md.border tbody tr td:nth-child(1)::before {
+            content: "Name";
+          }
+          
+          .rounded-md.border tbody tr td:nth-child(2)::before {
+            content: "Location";
+          }
+          
+          .rounded-md.border tbody tr td:nth-child(3)::before {
+            content: "Hours";
+          }
+          
+          .rounded-md.border tbody tr td:nth-child(4)::before {
+            content: "Services";
+          }
+          
+          .rounded-md.border tbody tr td:nth-child(5)::before {
+            content: "Status";
+          }
+          
+          .rounded-md.border tbody tr td:nth-child(6)::before {
+            content: "";
+          }
+
+          .rounded-md.border td:last-child {
+            padding-left: 0 !important;
+            text-align: right !important;
+          }
+
+          /* Map container */
+          [class*="h-"][class*="400px"] {
+            height: 250px !important;
+          }
+
+          /* Card header stacking */
+          .flex.flex-row.items-center.justify-between {
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            gap: 1rem;
+          }
+
+          .flex.flex-row.items-center.justify-between > button {
+            width: 100%;
+          }
+
+          /* Service buttons grid */
+          .space-y-2 .grid.grid-cols-2 button {
+            font-size: 0.8rem;
+            padding: 0.5rem 0.25rem;
+          }
+
+          /* Dialog buttons */
+          .flex.justify-end.gap-3 {
+            flex-direction: column-reverse !important;
+          }
+
+          .flex.justify-end.gap-3 button {
+            width: 100%;
+          }
+
+          /* Input adjustments */
+          input[type="time"] {
+            font-size: 16px !important; /* Prevents zoom on iOS */
+          }
+
+          /* Truncate long text */
+          .truncate.max-w-\\[150px\\] {
+            max-width: 100px !important;
+          }
+
+          /* Badge container */
+          .flex.gap-1.flex-wrap {
+            max-width: 100% !important;
+          }
+
+          /* Action buttons container */
+          .flex.justify-end.gap-2 {
+            justify-content: flex-start !important;
+            gap: 0.5rem !important;
+          }
+        }
+
+        /* Small tablets (641px - 768px) */
+        @media (min-width: 641px) and (max-width: 768px) {
+          [class*="max-w-4xl"] {
+            max-width: 95% !important;
+          }
+
+          .grid.lg\\:grid-cols-2 {
+            grid-template-columns: 1fr !important;
+          }
+
+          [class*="h-"][class*="400px"] {
+            height: 300px !important;
+          }
+
+          table {
+            font-size: 0.875rem;
+          }
+
+          td, th {
+            padding: 0.5rem !important;
+          }
+
+          .truncate.max-w-\\[150px\\] {
+            max-width: 120px !important;
+          }
+        }
+
+        /* Tablets (769px - 1024px) */
+        @media (min-width: 769px) and (max-width: 1024px) {
+          [class*="max-w-4xl"] {
+            max-width: 90% !important;
+          }
+
+          [class*="h-"][class*="400px"] {
+            height: 350px !important;
+          }
+
+          table {
+            font-size: 0.9rem;
+          }
+        }
+
+        /* Landscape mobile devices */
+        @media (max-height: 500px) and (orientation: landscape) {
+          [class*="max-h-"][class*="90vh"] {
+            max-height: 95vh !important;
+          }
+
+          [class*="overflow-y-auto"] {
+            overflow-y: scroll !important;
+          }
+
+          [class*="h-"][class*="400px"] {
+            height: 200px !important;
+          }
+
+          .space-y-4 {
+            gap: 0.5rem !important;
+          }
+        }
+
+        /* Touch device improvements */
+        @media (hover: none) and (pointer: coarse) {
+          button:not([class*="icon"]),
+          input:not([type="time"]),
+          textarea {
+            min-height: 44px !important; /* Touch target size */
+          }
+
+          button[class*="size-icon"] {
+            min-width: 44px !important;
+            min-height: 44px !important;
+          }
+        }
+
+        /* Leaflet map responsive fixes */
+        .leaflet-container {
+          font-family: inherit;
+          touch-action: pan-x pan-y;
+        }
+
+        @media (max-width: 640px) {
+          .leaflet-container {
+            height: 100% !important;
+          }
+
+          .leaflet-control-zoom {
+            margin-right: 5px !important;
+            margin-top: 5px !important;
+          }
+
+          .leaflet-popup-content-wrapper {
+            max-width: 200px;
+          }
+        }
+
+        /* Prevent horizontal scroll */
+        body {
+          overflow-x: hidden;
+        }
+
+        /* Improve scrolling on iOS */
+        .overflow-y-auto {
+          -webkit-overflow-scrolling: touch;
+        }
+
+        /* Safe area for notched devices */
+        @supports (padding: max(0px)) {
+          [class*="DialogContent"],
+          [class*="Card"] {
+            padding-left: max(1rem, env(safe-area-inset-left)) !important;
+            padding-right: max(1rem, env(safe-area-inset-right)) !important;
+          }
+        }
+
+        /* Fix for time input calendar icon visibility in dark mode */
+        @media (prefers-color-scheme: dark) {
+          input[type="time"]::-webkit-calendar-picker-indicator {
+            filter: invert(1);
+          }
+        }
+
+        /* Accessibility improvements */
+        @media (prefers-reduced-motion: reduce) {
+          * {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+          }
+        }
+      `}</style>;
