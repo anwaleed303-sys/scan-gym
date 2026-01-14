@@ -61,6 +61,38 @@
     --sidebar-border: 0 0% 18%;
     --sidebar-ring: 25 100% 50%;
   }
+  /* FORCE OVERRIDE LEAFLET ROUTING PANEL */
+  .leaflet-routing-container.leaflet-bar {
+    background-color: black !important;
+    color: #e5e7eb !important;
+    border-radius: 12px !important;
+    border: 1px solid #1e293b !important;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5) !important;
+  }
+
+  /* Inner instruction area */
+  .leaflet-routing-container.leaflet-bar .leaflet-routing-instructions,
+  .leaflet-routing-container.leaflet-bar .leaflet-routing-alt,
+  .leaflet-routing-container.leaflet-bar table {
+    background: transparent !important;
+    color: #e5e7eb !important;
+  }
+
+  /* Rows */
+  .leaflet-routing-container.leaflet-bar tr {
+    border-bottom: 1px solid #1e293b !important;
+  }
+
+  /* Text */
+  .leaflet-routing-container.leaflet-bar td {
+    color: #e5e7eb !important;
+  }
+
+  /* Header (A → B) */
+  .leaflet-routing-container.leaflet-bar h2 {
+    color: hsl(25 100% 50%) !important;
+  }
+
   .custom-marker {
     background: none !important;
     border: none !important;

@@ -975,7 +975,67 @@ export const GymsMapView = ({ gyms }: GymsMapViewProps) => {
           /* Hide legend in landscape */
           .absolute.top-4.left-4 {
             display: none !important;
+
+
           }
+/* ================================
+   LEAFLET ROUTING MACHINE PANEL
+   ================================ */
+
+/* Main routing container */
+.leaflet-routing-container {
+  max-height: 260px !important;
+  width: 320px !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  border-radius: 10px !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15) !important;
+  background: white !important;
+}
+
+/* Scrollbar styling */
+.leaflet-routing-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.leaflet-routing-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.leaflet-routing-container::-webkit-scrollbar-thumb {
+  background-color: #10b981;
+  border-radius: 10px;
+}
+
+/* Direction steps */
+.leaflet-routing-alt {
+  font-size: 13px !important;
+  line-height: 1.4 !important;
+}
+
+/* Each instruction row */
+.leaflet-routing-alt tr:hover {
+  background: #ecfdf5 !important;
+}
+
+/* Distance & time header */
+.leaflet-routing-summary {
+  font-weight: 600 !important;
+  color: #065f46 !important;
+}
+
+/* Hide profile selector */
+.leaflet-routing-geocoders {
+  display: none !important;
+}
+
+/* Mobile fix */
+@media (max-width: 640px) {
+  .leaflet-routing-container {
+    width: 100% !important;
+    max-height: 200px !important;
+  }
+}
 
           /* Compact route info */
           .p-3.bg-emerald-50 .flex.items-center.gap-4 {
@@ -1040,9 +1100,7 @@ export const GymsMapView = ({ gyms }: GymsMapViewProps) => {
           }
 
           /* Routing machine controls */
-          .leaflet-routing-container {
-            display: none !important;
-          }
+          .
 
           /* Custom marker sizing */
           .custom-gym-marker svg,
