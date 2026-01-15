@@ -83,6 +83,28 @@
     border-bottom: 1px solid #1e293b !important;
   }
 
+  /* Custom styling for select dropdowns */
+  select {
+    color-scheme: dark;
+  }
+
+  select option {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+  }
+
+  select option:checked,
+  select option:hover {
+    background-color: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+  }
+
+  /* For light mode */
+  @media (prefers-color-scheme: light) {
+    select {
+      color-scheme: light;
+    }
+  }
   /* Text */
   .leaflet-routing-container.leaflet-bar td {
     color: #e5e7eb !important;

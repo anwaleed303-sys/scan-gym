@@ -116,7 +116,17 @@ const Blog = () => {
     },
   ];
 
-  const displayPosts = posts.length > 0 ? filteredPosts : samplePosts;
+  const displayPosts =
+    posts.length > 0
+      ? filteredPosts
+      : samplePosts.filter((post) => {
+          const matchesSearch =
+            post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            post.excerpt?.toLowerCase().includes(searchQuery.toLowerCase());
+          const matchesCategory =
+            !selectedCategory || post.category === selectedCategory;
+          return matchesSearch && matchesCategory;
+        });
 
   return (
     <>

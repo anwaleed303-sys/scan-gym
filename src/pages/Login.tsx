@@ -10,7 +10,7 @@ import { useAuth } from "../Contexts/AuthContext";
 const Login = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { signIn, user, loading: authLoading } = useAuth();
+  const { signIn, signUp, user, loading: authLoading } = useAuth();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -25,26 +25,86 @@ const Login = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
 
-    const { error } = await signIn(formData.email, formData.password);
-
-    if (error) {
+    if (formData.password.length < 8) {
       toast({
-        title: "Login Failed",
-        description: error.message,
+        title: "Password too short",
+        description: "Password must be at least 8 characters.",
         variant: "destructive",
       });
-      setLoading(false);
       return;
     }
 
-    toast({
-      title: "Login Successful!",
-      description: "Redirecting to your dashboard...",
-    });
-    setLoading(false);
-    navigate("/dashboard");
+    setLoading(true);
+
+    // Try to login first
+    const { error: signInError } = await signIn(
+      formData.email,
+      formData.password
+    );
+
+    if (signInError) {
+      // If login fails with "Invalid login credentials", try to signup
+      if (
+        signInError.message.includes("Invalid login credentials") ||
+        signInError.message.includes("Email not confirmed")
+      ) {
+        // Extract name from email (before @)
+        const name = formData.email.split("@")[0];
+
+        // Try to create new account
+        const { error: signUpError } = await signUp(
+          formData.email,
+          formData.password,
+          name
+        );
+
+        if (signUpError) {
+          // If signup also fails, check if it's because user exists
+          if (signUpError.message.includes("already registered")) {
+            toast({
+              title: "Login Failed",
+              description: "Invalid email or password.",
+              variant: "destructive",
+            });
+          } else {
+            toast({
+              title: "Error",
+              description: signUpError.message,
+              variant: "destructive",
+            });
+          }
+          setLoading(false);
+          return;
+        }
+
+        // Signup successful, auto-login
+        toast({
+          title: "Welcome!",
+          description: "Account created successfully. Logging you in...",
+        });
+
+        setTimeout(() => {
+          navigate("/shop");
+        }, 1000);
+      } else {
+        // Other login errors
+        toast({
+          title: "Login Failed",
+          description: signInError.message,
+          variant: "destructive",
+        });
+        setLoading(false);
+      }
+    } else {
+      // Login successful
+      toast({
+        title: "Welcome Back!",
+        description: "Redirecting to shop...",
+      });
+      setLoading(false);
+      navigate("/shop");
+    }
   };
 
   if (authLoading) {
@@ -80,10 +140,10 @@ const Login = () => {
             </Link>
 
             <h1 className="font-display text-3xl font-bold text-foreground mb-2">
-              Welcome Back
+              Welcome
             </h1>
             <p className="text-muted-foreground mb-8">
-              Login to access gyms across Pakistan
+              New user? Just enter your email & password to create an account
             </p>
 
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -100,7 +160,7 @@ const Login = () => {
                     onChange={(e) =>
                       setFormData({ ...formData, email: e.target.value })
                     }
-                    placeholder="you@example.com"
+                    placeholder="scangym@example.com"
                     className="pl-12 h-12 bg-card"
                   />
                 </div>
@@ -123,9 +183,12 @@ const Login = () => {
                     className="pl-12 h-12 bg-card"
                   />
                 </div>
+                {/* <p className="text-xs text-muted-foreground mt-1">
+                  New user? Just enter your details to create an account
+                </p> */}
               </div>
 
-              <div className="flex items-center justify-between">
+              {/* <div className="flex items-center justify-between">
                 <label className="flex items-center gap-2">
                   <input type="checkbox" className="rounded border-border" />
                   <span className="text-sm text-muted-foreground">
@@ -138,7 +201,7 @@ const Login = () => {
                 >
                   Forgot password?
                 </Link>
-              </div>
+              </div> */}
 
               <Button
                 type="submit"
@@ -147,20 +210,10 @@ const Login = () => {
                 className="w-full"
                 disabled={loading}
               >
-                {loading ? "Logging in..." : "Login"}
+                {loading ? "Please wait..." : "Continue"}
                 <ArrowRight className="w-5 h-5" />
               </Button>
             </form>
-
-            <p className="text-center text-muted-foreground mt-6">
-              Don't have an account?{" "}
-              <Link
-                to="/signup"
-                className="text-primary hover:underline font-medium"
-              >
-                Sign up
-              </Link>
-            </p>
           </div>
         </div>
 

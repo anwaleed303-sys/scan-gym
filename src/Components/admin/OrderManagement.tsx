@@ -80,6 +80,7 @@ export const OrderManagement = ({
   const [filterEndDate, setFilterEndDate] = useState("");
   const [filterCustomerName, setFilterCustomerName] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
+  const [showStatusDropdown, setShowStatusDropdown] = useState(false);
 
   const ADMIN_Easypasa = "03241729660";
   const ADMIN_NAME = "Saad";
@@ -260,7 +261,7 @@ export const OrderManagement = ({
                 timeStyle: "short",
               })}</span>
             </div>
-            <div class="info-row">
+            <div class="info-row" >
               <span class="info-label">Status:</span>
               <span style="text-transform: uppercase; font-weight: bold;">${
                 order.status
@@ -865,7 +866,7 @@ export const OrderManagement = ({
             <DialogTitle>Filter Orders</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <div className="space-y-2">
+            {/* <div className="space-y-2">
               <Label>Start Date</Label>
               <Input
                 type="date"
@@ -880,7 +881,7 @@ export const OrderManagement = ({
                 value={filterEndDate}
                 onChange={(e) => setFilterEndDate(e.target.value)}
               />
-            </div>
+            </div> */}
             <div className="space-y-2">
               <Label>Customer Name</Label>
               <Input
@@ -891,55 +892,59 @@ export const OrderManagement = ({
             </div>
             <div className="space-y-2">
               <Label>Status</Label>
-              <select
-                className="w-full p-2 border rounded-md bg-transparent"
-                value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value)}
-                style={{
-                  backgroundColor: "transparent",
-                }}
-              >
-                <option
-                  value=""
-                  style={{
-                    backgroundColor: "black",
-                  }}
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => setShowStatusDropdown(!showStatusDropdown)}
+                  onBlur={() =>
+                    setTimeout(() => setShowStatusDropdown(false), 200)
+                  }
+                  className="w-full h-10 px-3 py-2 border border-input bg-card text-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 flex items-center justify-between"
                 >
-                  All Status
-                </option>
-                <option
-                  value="pending"
-                  style={{
-                    backgroundColor: "black",
-                  }}
-                >
-                  Pending
-                </option>
-                <option
-                  value="active"
-                  style={{
-                    backgroundColor: "black",
-                  }}
-                >
-                  Active
-                </option>
-                <option
-                  value="completed"
-                  style={{
-                    backgroundColor: "black",
-                  }}
-                >
-                  Completed
-                </option>
-                <option
-                  value="cancelled"
-                  style={{
-                    backgroundColor: "black",
-                  }}
-                >
-                  Cancelled
-                </option>
-              </select>
+                  <span className="text-left truncate">
+                    {filterStatus === ""
+                      ? "All Status"
+                      : filterStatus.charAt(0).toUpperCase() +
+                        filterStatus.slice(1)}
+                  </span>
+                  <svg
+                    className={`fill-current h-4 w-4 transition-transform ${
+                      showStatusDropdown ? "rotate-180" : ""
+                    }`}
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 20 20"
+                  >
+                    <path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z" />
+                  </svg>
+                </button>
+                {showStatusDropdown && (
+                  <div className="absolute z-50 w-full mt-1 bg-card border border-input rounded-md shadow-lg max-h-60 overflow-auto">
+                    {[
+                      { value: "", label: "All Status" },
+                      { value: "pending", label: "Pending" },
+                      { value: "active", label: "Active" },
+                      { value: "completed", label: "Completed" },
+                      { value: "cancelled", label: "Cancelled" },
+                    ].map((option) => (
+                      <div
+                        key={option.value}
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          setFilterStatus(option.value);
+                          setShowStatusDropdown(false);
+                        }}
+                        className={`px-3 py-2 cursor-pointer transition-colors ${
+                          filterStatus === option.value
+                            ? "bg-primary text-primary-foreground"
+                            : "hover:bg-primary/10"
+                        }`}
+                      >
+                        {option.label}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
             <div className="flex gap-2">
               <Button

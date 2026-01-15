@@ -61,7 +61,7 @@ interface Product {
   created_at: string;
 }
 
-const categories = [
+const defaultCategories = [
   "Supplements",
   "Equipment",
   "Accessories",
@@ -73,6 +73,9 @@ const ShopAdmin = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
+  const [categories, setCategories] = useState<string[]>(defaultCategories);
+  const [newCategory, setNewCategory] = useState("");
+  const [showCategoryDialog, setShowCategoryDialog] = useState(false);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [hasAccess, setHasAccess] = useState(false);
@@ -468,7 +471,16 @@ const ShopAdmin = () => {
 
                 <div>
                   <Label htmlFor="category">Category</Label>
-                  <Select value={category} onValueChange={setCategory}>
+                  <Select
+                    value={category}
+                    onValueChange={(value) => {
+                      if (value === "__add_new__") {
+                        setShowCategoryDialog(true);
+                      } else {
+                        setCategory(value);
+                      }
+                    }}
+                  >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -478,10 +490,23 @@ const ShopAdmin = () => {
                           {cat}
                         </SelectItem>
                       ))}
+                      <SelectItem
+                        value="__add_new__"
+                        className="text-primary font-medium"
+                      >
+                        <div
+                          className="flex items-center gap-2"
+                          style={{
+                            cursor: "pointer",
+                          }}
+                        >
+                          {/* <Plus className="w-4 h-4" /> */}
+                          Add New Category
+                        </div>
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
-
                 <div className="flex items-center gap-2">
                   <Switch
                     id="inStock"
@@ -620,6 +645,91 @@ const ShopAdmin = () => {
               }}
             >
               Delete
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+      {/* Add Category Dialog */}
+      <Dialog open={showCategoryDialog} onOpenChange={setShowCategoryDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Add New Category</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-4">
+            <div>
+              <Label htmlFor="newCategory">Category Name</Label>
+              <Input
+                id="newCategory"
+                value={newCategory}
+                onChange={(e) => setNewCategory(e.target.value)}
+                placeholder="e.g., Pre-Workout"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    if (
+                      newCategory.trim() &&
+                      !categories.includes(newCategory.trim())
+                    ) {
+                      setCategories([...categories, newCategory.trim()]);
+                      setCategory(newCategory.trim());
+                      toast({
+                        title: "Category added",
+                        description: `"${newCategory.trim()}" has been added.`,
+                      });
+                      setNewCategory("");
+                      setShowCategoryDialog(false);
+                    } else if (categories.includes(newCategory.trim())) {
+                      toast({
+                        title: "Category exists",
+                        description: "This category already exists.",
+                        variant: "destructive",
+                      });
+                    }
+                  }
+                }}
+              />
+            </div>
+          </div>
+          <div className="flex justify-end gap-3 pt-4">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowCategoryDialog(false);
+                setNewCategory("");
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                if (
+                  newCategory.trim() &&
+                  !categories.includes(newCategory.trim())
+                ) {
+                  setCategories([...categories, newCategory.trim()]);
+                  setCategory(newCategory.trim());
+                  toast({
+                    title: "Category added",
+                    description: `"${newCategory.trim()}" has been added.`,
+                  });
+                  setNewCategory("");
+                  setShowCategoryDialog(false);
+                } else if (categories.includes(newCategory.trim())) {
+                  toast({
+                    title: "Category exists",
+                    description: "This category already exists.",
+                    variant: "destructive",
+                  });
+                } else {
+                  toast({
+                    title: "Invalid input",
+                    description: "Please enter a category name.",
+                    variant: "destructive",
+                  });
+                }
+              }}
+            >
+              Add Category
             </Button>
           </div>
         </DialogContent>
