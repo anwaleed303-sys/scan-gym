@@ -59,6 +59,8 @@ interface Gym {
   description: string | null;
   is_active: boolean | null;
   created_at: string;
+  gym_type: "pro" | "standard" | null;
+  image_url: string | null;
 }
 
 interface Trainer {
@@ -151,7 +153,7 @@ const AdminDashboard = () => {
       const { data: gymsData, error: gymsError } = await supabase
         .from("gyms")
         .select(
-          "id, name, city, address, qr_code, latitude, longitude, opening_time, closing_time, services, phone, email, description, is_active, created_at"
+          "id, name, city, address, qr_code, latitude, longitude, opening_time, closing_time, services, phone, email, description, is_active, created_at, gym_type, image_url"
         )
         .order("name");
 

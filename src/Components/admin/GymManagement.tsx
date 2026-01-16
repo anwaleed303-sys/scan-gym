@@ -28,6 +28,7 @@ import {
   Bike,
   Heart,
   Waves,
+  MoreVertical,
 } from "lucide-react";
 import {
   Dialog,
@@ -48,6 +49,12 @@ import { Switch } from "../ui/switch";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { OpenStreetMapProvider } from "leaflet-geosearch";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@radix-ui/react-dropdown-menu";
 
 interface Gym {
   id: string;
@@ -65,6 +72,8 @@ interface Gym {
   description: string | null;
   is_active: boolean | null;
   created_at: string;
+  gym_type: "pro" | "standard" | null;
+  image_url: string | null;
 }
 
 const AVAILABLE_SERVICES = [
@@ -94,6 +103,13 @@ export const GymManagement = ({ gyms, onRefresh }: GymManagementProps) => {
   const map = useRef<L.Map | null>(null);
   const marker = useRef<L.Marker | null>(null);
   const [isSearchingLocation, setIsSearchingLocation] = useState(false);
+  const [imageDialog, setImageDialog] = useState<{
+    open: boolean;
+    gym: Gym | null;
+  }>({
+    open: false,
+    gym: null,
+  });
   const [userLocation, setUserLocation] = useState<{
     lat: number;
     lng: number;
@@ -122,8 +138,11 @@ export const GymManagement = ({ gyms, onRefresh }: GymManagementProps) => {
     email: "",
     description: "",
     is_active: true,
+    gym_type: "standard" as "pro" | "standard",
+    image_url: "",
   });
-
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string>("");
   useEffect(() => {
     if (isDialogOpen && mapContainer.current && !map.current) {
       setTimeout(() => {
@@ -246,8 +265,12 @@ export const GymManagement = ({ gyms, onRefresh }: GymManagementProps) => {
       email: "",
       description: "",
       is_active: true,
+      gym_type: "standard",
+      image_url: "",
     });
     setEditingGym(null);
+    setImageFile(null);
+    setImagePreview("");
   };
 
   const openAddDialog = () => {
@@ -270,7 +293,11 @@ export const GymManagement = ({ gyms, onRefresh }: GymManagementProps) => {
       email: gym.email || "",
       description: gym.description || "",
       is_active: gym.is_active ?? true,
+      gym_type: gym.gym_type || "standard",
+      image_url: gym.image_url || "",
     });
+    setImagePreview(gym.image_url || "");
+    setImageFile(null);
     setIsDialogOpen(true);
   };
 
@@ -281,6 +308,65 @@ export const GymManagement = ({ gyms, onRefresh }: GymManagementProps) => {
         ? prev.services.filter((s) => s !== serviceId)
         : [...prev.services, serviceId],
     }));
+  };
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: "File too large",
+          description: "Image must be less than 5MB",
+          variant: "destructive",
+          duration: 3000,
+        });
+        return;
+      }
+
+      if (!file.type.startsWith("image/")) {
+        toast({
+          title: "Invalid file type",
+          description: "Please upload an image file",
+          variant: "destructive",
+          duration: 3000,
+        });
+        return;
+      }
+
+      setImageFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const uploadImage = async (file: File): Promise<string | null> => {
+    try {
+      const fileExt = file.name.split(".").pop();
+      const fileName = `${Math.random()
+        .toString(36)
+        .substring(2)}-${Date.now()}.${fileExt}`;
+      const filePath = `gym-images/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("gyms")
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data } = supabase.storage.from("gyms").getPublicUrl(filePath);
+
+      return data.publicUrl;
+    } catch (error: any) {
+      toast({
+        title: "Image upload failed",
+        description: error.message,
+        variant: "destructive",
+        duration: 3000,
+      });
+      return null;
+    }
   };
 
   const generateQRCode = () => {
@@ -314,6 +400,14 @@ export const GymManagement = ({ gyms, onRefresh }: GymManagementProps) => {
 
     setLoading(true);
     try {
+      let imageUrl = formData.image_url;
+
+      if (imageFile) {
+        const uploadedUrl = await uploadImage(imageFile);
+        if (uploadedUrl) {
+          imageUrl = uploadedUrl;
+        }
+      }
       const gymData = {
         name: formData.name,
         city: formData.city,
@@ -327,6 +421,8 @@ export const GymManagement = ({ gyms, onRefresh }: GymManagementProps) => {
         email: formData.email || null,
         description: formData.description || null,
         is_active: formData.is_active,
+        gym_type: formData.gym_type,
+        image_url: imageUrl || null,
       };
 
       if (editingGym) {
@@ -412,11 +508,14 @@ export const GymManagement = ({ gyms, onRefresh }: GymManagementProps) => {
           <Table>
             <TableHeader>
               <TableRow>
+                {" "}
+                <TableHead>Image</TableHead>
                 <TableHead>Name</TableHead>
                 <TableHead>Location</TableHead>
                 <TableHead>Hours</TableHead>
                 <TableHead>Services</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Type</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -424,7 +523,7 @@ export const GymManagement = ({ gyms, onRefresh }: GymManagementProps) => {
               {gyms.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={6}
+                    colSpan={7}
                     className="text-center py-8 text-muted-foreground"
                   >
                     No gyms added yet. Click "Add Gym" to get started.
@@ -433,6 +532,22 @@ export const GymManagement = ({ gyms, onRefresh }: GymManagementProps) => {
               ) : (
                 gyms.map((gym) => (
                   <TableRow key={gym.id}>
+                    <TableCell>
+                      <div
+                        className="w-12 h-12 rounded-md overflow-hidden bg-muted flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity"
+                        onClick={() => setImageDialog({ open: true, gym })}
+                      >
+                        {gym.image_url ? (
+                          <img
+                            src={gym.image_url}
+                            alt={gym.name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <Dumbbell className="w-6 h-6 text-muted-foreground" />
+                        )}
+                      </div>
+                    </TableCell>
                     <TableCell className="font-medium">{gym.name}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1 text-sm">
@@ -476,26 +591,55 @@ export const GymManagement = ({ gyms, onRefresh }: GymManagementProps) => {
                         {gym.is_active ? "Active" : "Inactive"}
                       </Badge>
                     </TableCell>
+                    <TableCell>
+                      <Badge
+                        variant={
+                          gym.gym_type === "pro" ? "default" : "secondary"
+                        }
+                      >
+                        {gym.gym_type === "pro" ? "Pro" : "Standard"}
+                      </Badge>
+                    </TableCell>
                     <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => openEditDialog(gym)}
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon">
+                            <MoreVertical className="w-4 h-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent
+                          align="end"
+                          className="min-w-[100px]"
                         >
-                          <Edit2 className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="text-destructive hover:text-destructive"
-                          onClick={() =>
-                            setDeleteDialog({ open: true, id: gym.id })
-                          }
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
+                          <div
+                            className="flex items-center justify-around p-2 gap-2"
+                            style={
+                              {
+                                // backgroundColor: " hsl(25",
+                              }
+                            }
+                          >
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => openEditDialog(gym)}
+                              className="h-8 w-8"
+                            >
+                              <Edit2 className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() =>
+                                setDeleteDialog({ open: true, id: gym.id })
+                              }
+                              className="h-8 w-8 text-destructive hover:text-destructive"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </TableCell>
                   </TableRow>
                 ))
@@ -564,7 +708,75 @@ export const GymManagement = ({ gyms, onRefresh }: GymManagementProps) => {
                   Enter the exact Google Maps Plus Code or registered address
                 </p>
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="gym_type">Gym Type *</Label>
+                <div className="grid grid-cols-2 gap-3">
+                  <Button
+                    type="button"
+                    variant={
+                      formData.gym_type === "standard" ? "default" : "outline"
+                    }
+                    className="justify-center gap-2"
+                    onClick={() =>
+                      setFormData((prev) => ({ ...prev, gym_type: "standard" }))
+                    }
+                  >
+                    <Dumbbell className="w-4 h-4" />
+                    Standard
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={
+                      formData.gym_type === "pro" ? "default" : "outline"
+                    }
+                    className="justify-center gap-2"
+                    onClick={() =>
+                      setFormData((prev) => ({ ...prev, gym_type: "pro" }))
+                    }
+                  >
+                    <Dumbbell className="w-4 h-4" />
+                    Pro
+                  </Button>
+                </div>
+              </div>
 
+              <div className="space-y-2">
+                <Label htmlFor="image">Gym Image</Label>
+                <div className="space-y-3">
+                  {imagePreview && (
+                    <div className="relative w-full h-48 rounded-lg overflow-hidden border">
+                      <img
+                        src={imagePreview}
+                        alt="Gym preview"
+                        className="w-full h-full object-cover"
+                      />
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="icon"
+                        className="absolute top-2 right-2"
+                        onClick={() => {
+                          setImageFile(null);
+                          setImagePreview("");
+                          setFormData((prev) => ({ ...prev, image_url: "" }));
+                        }}
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  )}
+                  <Input
+                    id="image"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    className="cursor-pointer"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Upload an image (max 5MB). Supported: JPG, PNG, WebP
+                  </p>
+                </div>
+              </div>
               {/* <div className="space-y-2">
                 <Button
                   type="button"
@@ -764,6 +976,82 @@ export const GymManagement = ({ gyms, onRefresh }: GymManagementProps) => {
             </div> */}
           </div>
         </DialogContent>
+
+        {/* Image Preview Dialog */}
+        <Dialog
+          open={imageDialog.open}
+          onOpenChange={(open) => setImageDialog({ open, gym: null })}
+        >
+          <DialogContent className="max-w-3xl">
+            <DialogHeader>
+              <DialogTitle>{imageDialog.gym?.name}</DialogTitle>
+              <DialogDescription>
+                <div className="flex flex-col gap-2 mt-2">
+                  <div className="flex items-center gap-2">
+                    <MapPin className="w-4 h-4" />
+                    <span>{imageDialog.gym?.city}</span>
+                    {imageDialog.gym?.address && (
+                      <span className="text-muted-foreground">
+                        - {imageDialog.gym.address}
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Clock className="w-4 h-4" />
+                    <span>
+                      {formatTime(imageDialog.gym?.opening_time || null)} -{" "}
+                      {formatTime(imageDialog.gym?.closing_time || null)}
+                    </span>
+                  </div>
+                  {imageDialog.gym?.phone && (
+                    <div className="flex items-center gap-2">
+                      <Phone className="w-4 h-4" />
+                      <span>{imageDialog.gym.phone}</span>
+                    </div>
+                  )}
+                  {imageDialog.gym?.email && (
+                    <div className="flex items-center gap-2">
+                      <Mail className="w-4 h-4" />
+                      <span>{imageDialog.gym.email}</span>
+                    </div>
+                  )}
+                </div>
+              </DialogDescription>
+            </DialogHeader>
+            <div className="mt-4">
+              {imageDialog.gym?.image_url ? (
+                <img
+                  src={imageDialog.gym.image_url}
+                  alt={imageDialog.gym.name}
+                  className="w-full h-auto rounded-lg"
+                />
+              ) : (
+                <div className="w-full h-64 bg-muted rounded-lg flex items-center justify-center">
+                  <Dumbbell className="w-16 h-16 text-muted-foreground" />
+                </div>
+              )}
+              {imageDialog.gym?.description && (
+                <p className="mt-4 text-sm text-muted-foreground">
+                  {imageDialog.gym.description}
+                </p>
+              )}
+              {imageDialog.gym?.services &&
+                imageDialog.gym.services.length > 0 && (
+                  <div className="mt-4">
+                    <p className="text-sm font-medium mb-2">Services:</p>
+                    <div className="flex gap-2 flex-wrap">
+                      {imageDialog.gym.services.map((service) => (
+                        <Badge key={service} variant="secondary">
+                          {AVAILABLE_SERVICES.find((s) => s.id === service)
+                            ?.label || service}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+            </div>
+          </DialogContent>
+        </Dialog>
       </Dialog>
       {/* Delete Confirmation Dialog */}
       <Dialog
@@ -867,29 +1155,45 @@ export const GymManagement = ({ gyms, onRefresh }: GymManagementProps) => {
           }
 
           /* Labels for mobile table */
-          .rounded-md.border tbody tr td:nth-child(1)::before {
-            content: "Name";
-          }
-          
-          .rounded-md.border tbody tr td:nth-child(2)::before {
-            content: "Location";
-          }
-          
-          .rounded-md.border tbody tr td:nth-child(3)::before {
-            content: "Hours";
-          }
-          
-          .rounded-md.border tbody tr td:nth-child(4)::before {
-            content: "Services";
-          }
-          
-          .rounded-md.border tbody tr td:nth-child(5)::before {
-            content: "Status";
-          }
-          
-          .rounded-md.border tbody tr td:nth-child(6)::before {
-            content: "";
-          }
+         /* Labels for mobile table */
+.rounded-md.border tbody tr td:nth-child(1)::before {
+  content: "Image";
+}
+
+.rounded-md.border tbody tr td:nth-child(2)::before {
+  content: "Name";
+}
+
+.rounded-md.border tbody tr td:nth-child(3)::before {
+  content: "Location";
+}
+
+.rounded-md.border tbody tr td:nth-child(4)::before {
+  content: "Hours";
+}
+
+.rounded-md.border tbody tr td:nth-child(5)::before {
+  content: "Services";
+}
+
+.rounded-md.border tbody tr td:nth-child(6)::before {
+  content: "Status";
+}
+
+.rounded-md.border tbody tr td:nth-child(7)::before {
+  content: "Type";
+}
+
+.rounded-md.border tbody tr td:nth-child(8)::before {
+  content: "";
+}
+         .rounded-md.border tbody tr td:nth-child(6)::before {
+  content: "Type";
+}
+
+.rounded-md.border tbody tr td:nth-child(7)::before {
+  content: "";
+}
 
           .rounded-md.border td:last-child {
             padding-left: 0 !important;

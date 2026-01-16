@@ -76,6 +76,13 @@ const ShopAdmin = () => {
   const [categories, setCategories] = useState<string[]>(defaultCategories);
   const [newCategory, setNewCategory] = useState("");
   const [showCategoryDialog, setShowCategoryDialog] = useState(false);
+  const [deleteCategoryDialog, setDeleteCategoryDialog] = useState<{
+    open: boolean;
+    category: string | null;
+  }>({
+    open: false,
+    category: null,
+  });
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [hasAccess, setHasAccess] = useState(false);
@@ -92,6 +99,7 @@ const ShopAdmin = () => {
   const [image, setImage] = useState("");
   const [category, setCategory] = useState("Supplements");
   const [inStock, setInStock] = useState(true);
+
   const [deleteDialog, setDeleteDialog] = useState<{
     open: boolean;
     id: string | null;
@@ -309,7 +317,28 @@ const ShopAdmin = () => {
       fetchProducts();
     }
   };
+  const deleteCategory = (categoryToDelete: string) => {
+    // Check if any products use this category
+    const productsUsingCategory = products.filter(
+      (p) => p.category === categoryToDelete
+    );
 
+    if (productsUsingCategory.length > 0) {
+      toast({
+        title: "Cannot delete category",
+        description: `${productsUsingCategory.length} product(s) are using this category.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setCategories(categories.filter((cat) => cat !== categoryToDelete));
+    toast({
+      title: "Category deleted",
+      description: `"${categoryToDelete}" has been removed.`,
+    });
+    setDeleteCategoryDialog({ open: false, category: null });
+  };
   const formatPrice = (price: number) => `Rs. ${price.toLocaleString()}`;
 
   if (loading) {
@@ -653,11 +682,11 @@ const ShopAdmin = () => {
       <Dialog open={showCategoryDialog} onOpenChange={setShowCategoryDialog}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Add New Category</DialogTitle>
+            <DialogTitle>Manage Categories</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 pt-4">
             <div>
-              <Label htmlFor="newCategory">Category Name</Label>
+              <Label htmlFor="newCategory">Add New Category</Label>
               <Input
                 id="newCategory"
                 value={newCategory}
@@ -677,7 +706,6 @@ const ShopAdmin = () => {
                         description: `"${newCategory.trim()}" has been added.`,
                       });
                       setNewCategory("");
-                      setShowCategoryDialog(false);
                     } else if (categories.includes(newCategory.trim())) {
                       toast({
                         title: "Category exists",
@@ -688,6 +716,65 @@ const ShopAdmin = () => {
                   }
                 }}
               />
+              <Button
+                className="w-full mt-2"
+                onClick={() => {
+                  if (
+                    newCategory.trim() &&
+                    !categories.includes(newCategory.trim())
+                  ) {
+                    setCategories([...categories, newCategory.trim()]);
+                    setCategory(newCategory.trim());
+                    toast({
+                      title: "Category added",
+                      description: `"${newCategory.trim()}" has been added.`,
+                    });
+                    setNewCategory("");
+                  } else if (categories.includes(newCategory.trim())) {
+                    toast({
+                      title: "Category exists",
+                      description: "This category already exists.",
+                      variant: "destructive",
+                    });
+                  } else {
+                    toast({
+                      title: "Invalid input",
+                      description: "Please enter a category name.",
+                      variant: "destructive",
+                    });
+                  }
+                }}
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add Category
+              </Button>
+            </div>
+
+            <div className="border-t pt-4">
+              <Label>Existing Categories</Label>
+              <div className="mt-2 space-y-2 max-h-48 overflow-y-auto">
+                {categories.map((cat) => (
+                  <div
+                    key={cat}
+                    className="flex items-center justify-between p-2 border rounded-lg hover:bg-accent"
+                  >
+                    <span>{cat}</span>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() =>
+                        setDeleteCategoryDialog({
+                          open: true,
+                          category: cat,
+                        })
+                      }
+                    >
+                      <Trash2 className="w-4 h-4 text-destructive" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
           <div className="flex justify-end gap-3 pt-4">
@@ -698,38 +785,46 @@ const ShopAdmin = () => {
                 setNewCategory("");
               }}
             >
+              Close
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Category Confirmation Dialog */}
+      <Dialog
+        open={deleteCategoryDialog.open}
+        onOpenChange={(open) =>
+          setDeleteCategoryDialog({ open, category: null })
+        }
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Delete Category</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Are you sure you want to delete the category "
+            {deleteCategoryDialog.category}"? This can only be done if no
+            products are using this category.
+          </p>
+          <div className="flex justify-end gap-3 pt-4">
+            <Button
+              variant="outline"
+              onClick={() =>
+                setDeleteCategoryDialog({ open: false, category: null })
+              }
+            >
               Cancel
             </Button>
             <Button
+              variant="destructive"
               onClick={() => {
-                if (
-                  newCategory.trim() &&
-                  !categories.includes(newCategory.trim())
-                ) {
-                  setCategories([...categories, newCategory.trim()]);
-                  setCategory(newCategory.trim());
-                  toast({
-                    title: "Category added",
-                    description: `"${newCategory.trim()}" has been added.`,
-                  });
-                  setNewCategory("");
-                  setShowCategoryDialog(false);
-                } else if (categories.includes(newCategory.trim())) {
-                  toast({
-                    title: "Category exists",
-                    description: "This category already exists.",
-                    variant: "destructive",
-                  });
-                } else {
-                  toast({
-                    title: "Invalid input",
-                    description: "Please enter a category name.",
-                    variant: "destructive",
-                  });
+                if (deleteCategoryDialog.category) {
+                  deleteCategory(deleteCategoryDialog.category);
                 }
               }}
             >
-              Add Category
+              Delete
             </Button>
           </div>
         </DialogContent>
