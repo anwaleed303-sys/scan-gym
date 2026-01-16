@@ -923,8 +923,8 @@ export const OrderManagement = ({
                       { value: "", label: "All Status" },
                       { value: "pending", label: "Pending" },
                       { value: "active", label: "Active" },
-                      { value: "completed", label: "Completed" },
-                      { value: "cancelled", label: "Cancelled" },
+                      // { value: "completed", label: "Completed" },
+                      // { value: "cancelled", label: "Cancelled" },
                     ].map((option) => (
                       <div
                         key={option.value}
