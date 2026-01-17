@@ -114,7 +114,7 @@ const BlogAdmin = () => {
         .eq("user_id", user.id);
 
       const hasRole = roles?.some(
-        (r) => r.role === "admin" || r.role === "partner"
+        (r) => r.role === "admin" || r.role === "partner",
       );
       if (!hasRole) {
         toast({
@@ -444,7 +444,7 @@ const BlogAdmin = () => {
                                 <Calendar className="w-3 h-3" />
                                 {format(
                                   new Date(post.created_at),
-                                  "MMM d, yyyy"
+                                  "MMM d, yyyy",
                                 )}
                               </span>
                               <Badge variant="outline">{post.category}</Badge>

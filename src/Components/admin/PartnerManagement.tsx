@@ -123,33 +123,7 @@ export const PartnerManagement = ({
       description: `${field} copied to clipboard`,
     });
   };
-  // Add this at the top of your component, inside the PartnerManagement function
-  useEffect(() => {
-    const checkAuthStatus = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      console.log("Current session:", session);
 
-      if (session?.user) {
-        console.log("Current user ID:", session.user.id);
-        console.log("User email:", session.user.email);
-
-        // Check roles
-        const { data: roles, error } = await supabase
-          .from("user_roles")
-          .select("*")
-          .eq("user_id", session.user.id);
-
-        console.log("User roles:", roles);
-        console.log("Roles error:", error);
-      } else {
-        console.log("No user session found");
-      }
-    };
-
-    checkAuthStatus();
-  }, []);
   const copyAllCredentials = async () => {
     if (!createdCredentials) return;
     const text = `Partner Login Credentials for ${createdCredentials.gymName}
@@ -199,21 +173,11 @@ Login URL: ${window.location.origin}/partner-login`;
         error: sessionError,
       } = await supabase.auth.getSession();
 
-      console.log("Session check:", { session, sessionError });
-
       if (sessionError || !session) {
-        console.error("Session error:", sessionError);
         throw new Error(
-          "You are not authenticated. Please log out and log back in."
+          "You are not authenticated. Please log out and log back in.",
         );
       }
-
-      console.log("Session valid, calling edge function...");
-      console.log("Calling edge function with:", {
-        email,
-        fullName,
-        gymId: selectedGymId,
-      });
 
       const response = await supabase.functions.invoke("create-partner", {
         body: {
@@ -224,8 +188,6 @@ Login URL: ${window.location.origin}/partner-login`;
         },
       });
 
-      console.log("Full response:", response);
-
       if (response.error) {
         let errorMessage = response.error.message;
 
@@ -233,16 +195,13 @@ Login URL: ${window.location.origin}/partner-login`;
           try {
             const clone = response.error.context.clone();
             const text = await clone.text();
-            console.log("Error response text:", text);
 
             if (text) {
               const errorData = JSON.parse(text);
-              console.log("Parsed error:", errorData);
+
               errorMessage = errorData.error || errorMessage;
             }
-          } catch (e) {
-            console.log("Could not parse error response");
-          }
+          } catch (e) {}
         }
 
         throw new Error(errorMessage);
@@ -278,7 +237,6 @@ Login URL: ${window.location.origin}/partner-login`;
           "Don't forget to share the login credentials with the partner!",
       });
     } catch (error: any) {
-      console.error("Create partner error:", error);
       toast({
         title: "Error creating partner",
         description:
@@ -701,7 +659,7 @@ Login URL: ${window.location.origin}/partner-login`;
                     onClick={() =>
                       copyToClipboard(
                         `${window.location.origin}/partner-login`,
-                        "Login URL"
+                        "Login URL",
                       )
                     }
                   >

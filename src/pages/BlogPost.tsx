@@ -57,16 +57,48 @@ const BlogPost = () => {
       fetchPost(slug);
     }
   }, [slug]);
-
   const fetchPost = async (postSlug: string) => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
+
+      // First, try to get published post
+      let { data, error } = await supabase
         .from("blog_posts")
         .select("*")
         .eq("slug", postSlug)
         .eq("is_published", true)
         .single();
+
+      // If not found and user is logged in, try to get draft
+      if (error && error.code === "PGRST116") {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+
+        if (user) {
+          // Check if user has admin or partner role
+          const { data: roles } = await supabase
+            .from("user_roles")
+            .select("role")
+            .eq("user_id", user.id);
+
+          const canViewDraft = roles?.some(
+            (r) => r.role === "admin" || r.role === "partner",
+          );
+
+          if (canViewDraft) {
+            // Try getting unpublished post
+            const result = await supabase
+              .from("blog_posts")
+              .select("*")
+              .eq("slug", postSlug)
+              .single();
+
+            data = result.data;
+            error = result.error;
+          }
+        }
+      }
 
       if (error || !data) {
         setNotFound(true);
@@ -82,6 +114,30 @@ const BlogPost = () => {
       setLoading(false);
     }
   };
+  // const fetchPost = async (postSlug: string) => {
+  //   try {
+  //     setLoading(true);
+  //     const { data, error } = await supabase
+  //       .from("blog_posts")
+  //       .select("*")
+  //       .eq("slug", postSlug)
+  //       .eq("is_published", true)
+  //       .single();
+
+  //     if (error || !data) {
+  //       setNotFound(true);
+  //       return;
+  //     }
+
+  //     setPost(data);
+  //     fetchRelatedPosts(data.category, data.id);
+  //   } catch (error) {
+  //     console.error("Error fetching blog post:", error);
+  //     setNotFound(true);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   const fetchRelatedPosts = async (category: string, currentPostId: string) => {
     try {
@@ -111,13 +167,13 @@ const BlogPost = () => {
 
     const shareUrls: Record<string, string> = {
       facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
-        url
+        url,
       )}`,
       twitter: `https://twitter.com/intent/tweet?url=${encodeURIComponent(
-        url
+        url,
       )}&text=${encodeURIComponent(title)}`,
       linkedin: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(
-        url
+        url,
       )}`,
     };
 

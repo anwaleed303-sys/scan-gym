@@ -153,7 +153,7 @@ const AdminDashboard = () => {
       const { data: gymsData, error: gymsError } = await supabase
         .from("gyms")
         .select(
-          "id, name, city, address, qr_code, latitude, longitude, opening_time, closing_time, services, phone, email, description, is_active, created_at, gym_type, image_url"
+          "id, name, city, address, qr_code, latitude, longitude, opening_time, closing_time, services, phone, email, description, is_active, created_at, gym_type, image_url",
         )
         .order("name");
 
@@ -170,7 +170,7 @@ const AdminDashboard = () => {
           gym_id,
           created_at,
           gyms (id, name, city, address, opening_time, closing_time, services, phone, email, is_active)
-        `
+        `,
         )
         .order("created_at", { ascending: false });
 
@@ -220,8 +220,6 @@ const AdminDashboard = () => {
 
       if (ordersError) throw ordersError;
 
-      console.log("📦 Raw orders from database:", ordersData);
-
       // Manually fetch user profiles for orders
       const orderUserIds =
         ordersData?.map((o) => o.user_id).filter(Boolean) || [];
@@ -254,20 +252,20 @@ const AdminDashboard = () => {
         })) || [];
 
       // Debug: Log processed orders
-      console.log("✅ Processed orders with profiles:", ordersWithProfiles);
-      console.log("📈 Breakdown by status:", {
-        pending: ordersWithProfiles.filter((o) => o.status === "pending")
-          .length,
-        active: ordersWithProfiles.filter((o) => o.status === "active").length,
-        completed: ordersWithProfiles.filter((o) => o.status === "completed")
-          .length,
-        cancelled: ordersWithProfiles.filter((o) => o.status === "cancelled")
-          .length,
-      });
+      // console.log("✅ Processed orders with profiles:", ordersWithProfiles);
+      // console.log("📈 Breakdown by status:", {
+      //   pending: ordersWithProfiles.filter((o) => o.status === "pending")
+      //     .length,
+      //   active: ordersWithProfiles.filter((o) => o.status === "active").length,
+      //   completed: ordersWithProfiles.filter((o) => o.status === "completed")
+      //     .length,
+      //   cancelled: ordersWithProfiles.filter((o) => o.status === "cancelled")
+      //     .length,
+      // });
 
       setOrders(ordersWithProfiles);
     } catch (error: any) {
-      console.error("❌ Error loading orders:", error);
+      // console.error("❌ Error loading orders:", error);
       toast({
         title: "Error loading data",
         description: error.message,

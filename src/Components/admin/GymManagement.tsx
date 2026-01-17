@@ -212,7 +212,7 @@ export const GymManagement = ({ gyms, onRefresh }: GymManagementProps) => {
           marker.current.setPopupContent(
             `<strong>${formData.name || "Gym Location"}</strong><br/>${
               formData.address
-            }<br/><small>${lat.toFixed(6)}, ${lng.toFixed(6)}</small>`
+            }<br/><small>${lat.toFixed(6)}, ${lng.toFixed(6)}</small>`,
           );
           marker.current.openPopup();
         }
@@ -613,11 +613,10 @@ export const GymManagement = ({ gyms, onRefresh }: GymManagementProps) => {
                         >
                           <div
                             className="flex items-center justify-around p-2 gap-2"
-                            style={
-                              {
-                                // backgroundColor: " hsl(25",
-                              }
-                            }
+                            style={{
+                              backgroundColor: " #1a1a1a",
+                              borderRadius: "5px 5px ",
+                            }}
                           >
                             <Button
                               variant="ghost"
@@ -935,8 +934,8 @@ export const GymManagement = ({ gyms, onRefresh }: GymManagementProps) => {
                   {loading
                     ? "Saving..."
                     : editingGym
-                    ? "Update Gym"
-                    : "Add Gym"}
+                      ? "Update Gym"
+                      : "Add Gym"}
                 </Button>
               </div>
             </div>
